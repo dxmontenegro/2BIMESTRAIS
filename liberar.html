@@ -45,7 +45,6 @@
             font-weight: bold;
         }
 
-        /* CONTAINER DO SCANNER */
         #reader {
             width: 100%;
             height: 50vh; 
@@ -59,25 +58,20 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* CORREÇÃO CRÍTICA: Força o vídeo gerado pelo Quagga a centralizar e cobrir */
+        /* Força o vídeo a ocupar todo o container */
         #reader video {
             position: absolute;
             top: 0;
             left: 0;
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover; /* Preenche o espaço sem deformar */
+            object-fit: cover;
         }
 
         #reader canvas.drawingBuffer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
+            display: none; /* Esconde as caixas de detecção sobre o vídeo para ficar mais limpo */
         }
 
-        /* MIRA DE ENQUADRAMENTO */
         .mira {
             position: absolute;
             width: 260px;
@@ -87,7 +81,6 @@
             box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
             z-index: 10;
             pointer-events: none;
-            /* Garante centralização perfeita */
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -210,6 +203,7 @@ async function liberar(codigo){
     `;
 }
 
+// FUNÇÃO DE INICIALIZAÇÃO ROBUSTA
 function iniciar(){
     Quagga.init({
         inputStream: {
@@ -217,8 +211,7 @@ function iniciar(){
             type: "LiveStream",
             target: document.querySelector('#reader'),
             constraints: {
-                facingMode: "environment",
-                // Removido aspectRatio fixo para deixar o CSS controlar
+                facingMode: "environment"
             }
         },
         decoder: {
@@ -227,7 +220,11 @@ function iniciar(){
         },
         locate: true
     }, function(err) {
-        if (err) { console.error(err); return; }
+        if (err) { 
+            console.error(err); 
+            document.getElementById("msgStatus").innerText = "Erro ao acessar câmera.";
+            return; 
+        }
         Quagga.start();
     });
 }
@@ -238,9 +235,23 @@ Quagga.onDetected(function(data) {
     Quagga.stop();
 });
 
+// REINICIALIZAÇÃO COMPLETA
 function reiniciar(){
-    document.getElementById("info").innerHTML = `<p style="text-align:center; color:#94a3b8; margin:0;">Aguardando leitura...</p>`;
-    Quagga.start();
+    document.getElementById("info").innerHTML = `<p id="msgStatus" style="text-align:center; color:#94a3b8; margin:0;">Reiniciando câmera...</p>`;
+    
+    // Para o Quagga completamente
+    Quagga.stop();
+
+    // Limpa o conteúdo de vídeo antigo de dentro do #reader (deixando apenas a mira)
+    const reader = document.querySelector('#reader');
+    const videos = reader.querySelectorAll('video, canvas');
+    videos.forEach(v => v.remove());
+
+    // Reinicia do zero após um pequeno atraso para o sistema liberar a câmera
+    setTimeout(() => {
+        iniciar();
+        document.getElementById("info").innerHTML = `<p id="msgStatus" style="text-align:center; color:#94a3b8; margin:0;">Aguardando leitura...</p>`;
+    }, 300);
 }
 
 window.addEventListener('load', iniciar);
