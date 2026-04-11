@@ -27,8 +27,11 @@
         body {
             font-family: -apple-system, system-ui, sans-serif;
             background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background-attachment: fixed;
+            background-size: cover;
             color: var(--text);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             padding: 15px;
@@ -58,16 +61,18 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            transition: 0.3s;
         }
 
+        .btn-nav:hover { background: var(--card); border-color: var(--primary); }
         .btn-sair { color: var(--danger); }
-        .modo-fiscal { font-weight: 800; font-size: 12px; color: var(--primary); letter-spacing: 1px; }
+        .modo-fiscal { font-weight: 800; font-size: 11px; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
 
-        /* Scanner */
+        /* Scanner Container */
         #reader {
             width: 100%;
             max-width: 500px;
-            height: 40vh; 
+            height: 35vh; 
             margin: 0 auto;
             border-radius: 24px;
             overflow: hidden;
@@ -87,14 +92,20 @@
             object-fit: cover;
         }
 
+        canvas.drawingBuffer {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+        }
+
         /* Mira do Scanner */
         .mira {
             position: absolute;
-            width: 240px;
-            height: 140px;
+            width: 70%;
+            height: 50%;
             border: 2px solid var(--primary);
             border-radius: 15px;
-            box-shadow: 0 0 0 4000px rgba(15, 23, 42, 0.7);
+            box-shadow: 0 0 0 4000px rgba(15, 23, 42, 0.6);
             z-index: 10;
             pointer-events: none;
         }
@@ -110,8 +121,8 @@
         }
 
         @keyframes scanLine {
-            0%, 100% { transform: translateY(-40px); opacity: 0.2; }
-            50% { transform: translateY(40px); opacity: 1; }
+            0%, 100% { transform: translateY(-30px); opacity: 0.2; }
+            50% { transform: translateY(30px); opacity: 1; }
         }
 
         /* Container de Informações */
@@ -126,6 +137,7 @@
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .btn-acao {
@@ -144,9 +156,10 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            text-transform: uppercase;
         }
 
-        .btn-acao:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-acao:active { transform: scale(0.98); }
 
         .info-box {
             background: rgba(15, 23, 42, 0.5);
@@ -158,27 +171,25 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: center;
         }
 
         .pc-destaque {
-            font-size: 42px;
+            font-size: 48px;
             font-weight: 900;
             color: var(--success);
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
             display: block;
-            margin: 10px 0;
+            margin: 5px 0;
         }
 
-        /* Rodapé */
         footer {
-            margin-top: 20px;
+            margin-top: 15px;
             text-align: center;
             color: var(--text-dim);
-            font-size: 11px;
-            padding-bottom: 10px;
+            font-size: 10px;
+            padding-bottom: 5px;
         }
-        footer b { color: var(--text); }
-        footer i { color: var(--primary); margin: 0 3px; }
     </style>
 </head>
 
@@ -186,7 +197,7 @@
 
     <div class="nav-top">
         <button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
-        <div class="modo-fiscal"><i class="fas fa-shield-alt"></i> MODO FISCAL</div>
+        <div class="modo-fiscal"><i class="fas fa-shield-alt"></i> Scanner Ativo</div>
         <button class="btn-nav btn-sair" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
     </div>
 
@@ -200,13 +211,13 @@
         </button>
         
         <div class="info-box" id="info">
-            <p id="msgStatus" style="color: var(--text-dim);">Aguardando leitura do código de barras...</p>
+            <p id="msgStatus" style="color: var(--text-dim); font-weight: 600;">Posicione o código de barras na mira acima</p>
         </div>
     </div>
 
     <footer>
         <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
-        <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+        <p>Desenvolvido por D.S.Montenegro</p>
     </footer>
 
 <script>
@@ -215,48 +226,54 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 function voltar(){ window.location.href = "painel.html" }
-async function sair() { await client.auth.signOut(); window.location.href = "index.html"; }
+async function sair() { if(confirm("Deseja sair?")) { await client.auth.signOut(); window.location.href = "index.html"; } }
 
 async function liberar(codigo){
     codigo = codigo.trim();
     if (navigator.vibrate) navigator.vibrate(100);
 
-    document.getElementById("info").innerHTML = `<p>Buscando aluno...</p><h3 style="color:var(--primary)">${codigo}</h3>`;
+    const info = document.getElementById("info");
+    info.innerHTML = `<div class="spinner"><i class="fas fa-circle-notch fa-spin"></i> Validando Aluno...</div>`;
 
     const { data: aluno, error } = await client.from("provas_alunos").select("*").eq("codigo_barras", codigo).single();
 
     if(error || !aluno){
-        document.getElementById("info").innerHTML = `
-            <i class="fas fa-user-times" style="font-size:30px; color:var(--danger); margin-bottom:10px;"></i>
+        info.innerHTML = `
+            <i class="fas fa-user-times" style="font-size:40px; color:var(--danger); margin-bottom:10px;"></i>
             <p style="color:var(--danger); font-weight:bold;">ALUNO NÃO ENCONTRADO</p>
-            <p style="font-size:12px; color:var(--text-dim)">Verifique o código e tente novamente.</p>
+            <p style="font-size:12px; color:var(--text-dim)">Código: ${codigo}</p>
         `;
         return;
     }
 
     const ano = aluno.turma.charAt(0);
-    const { data: pcs } = await client.from("provas_terminais").select("*").eq("status", "livre").eq("ano", parseInt(ano)).limit(1);
+    // Busca um PC livre para o ano específico
+    const { data: pcs } = await client.from("provas_terminais")
+        .select("*")
+        .eq("status", "livre")
+        .eq("ano", parseInt(ano))
+        .limit(1);
 
     if(!pcs || pcs.length === 0){
-        document.getElementById("info").innerHTML = `
-            <i class="fas fa-exclamation-triangle" style="font-size:30px; color:#fbbf24; margin-bottom:10px;"></i>
+        info.innerHTML = `
+            <i class="fas fa-exclamation-triangle" style="font-size:40px; color:#fbbf24; margin-bottom:10px;"></i>
             <p><b>${aluno.nome}</b></p>
-            <p style="color:#fbbf24; font-weight:bold;">SEM PCS LIVRES PARA O ${ano}º ANO</p>
+            <p style="color:#fbbf24; font-weight:bold; margin-top:5px;">SEM TERMINAIS LIVRES<br>PARA O ${ano}º ANO</p>
         `;
         return;
     }
 
     const pc = pcs[0];
 
-    // Ações no Banco
+    // Atualiza status no banco
     await client.from("provas_terminais").update({ status: "ocupado", aluno_id: aluno.id }).eq("id", pc.id);
     await client.from("provas_alunos").update({ fez_prova: true }).eq("id", aluno.id);
 
-    document.getElementById("info").innerHTML = `
-        <i class="fas fa-check-circle" style="font-size:30px; color:var(--success); margin-bottom:10px;"></i>
-        <p style="color:var(--text-dim); font-size:12px; text-transform:uppercase;">Acesso Liberado para:</p>
-        <strong style="font-size:18px; display:block; margin-bottom:15px;">${aluno.nome}</strong>
-        <p style="color:var(--text-dim); font-size:12px;">ENCAMINHE PARA O:</p>
+    info.innerHTML = `
+        <i class="fas fa-check-circle" style="font-size:40px; color:var(--success); margin-bottom:10px;"></i>
+        <p style="color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Acesso Liberado</p>
+        <strong style="font-size:18px; display:block; margin: 5px 0;">${aluno.nome}</strong>
+        <p style="color:var(--text-dim); font-size:11px; margin-top:10px;">VÁ PARA O TERMINAL:</p>
         <span class="pc-destaque">${pc.nome}</span>
     `;
 }
@@ -267,7 +284,10 @@ function iniciar(){
             name: "Live",
             type: "LiveStream",
             target: document.querySelector('#reader'),
-            constraints: { facingMode: "environment" }
+            constraints: { 
+                facingMode: "environment",
+                aspectRatio: { min: 1, max: 2 }
+            }
         },
         decoder: {
             readers: ["code_128_reader", "ean_reader"],
@@ -276,6 +296,7 @@ function iniciar(){
         locate: true
     }, function(err) {
         if (err) { 
+            console.error(err);
             document.getElementById("msgStatus").innerText = "Erro ao acessar câmera.";
             return; 
         }
@@ -285,21 +306,24 @@ function iniciar(){
 
 Quagga.onDetected(function(data) {
     const codigo = data.codeResult.code;
+    Quagga.stop(); // Para o scanner imediatamente após detectar
     liberar(codigo);
-    Quagga.stop();
 });
 
 function reiniciar(){
-    document.getElementById("info").innerHTML = `<p style="color:var(--text-dim);">Reiniciando câmera...</p>`;
+    const info = document.getElementById("info");
+    info.innerHTML = `<p style="color:var(--text-dim);">Reiniciando scanner...</p>`;
     Quagga.stop();
+    
+    // Limpa vídeos antigos
     const reader = document.querySelector('#reader');
-    const videos = reader.querySelectorAll('video, canvas');
-    videos.forEach(v => v.remove());
+    const elements = reader.querySelectorAll('video, canvas');
+    elements.forEach(el => el.remove());
 
     setTimeout(() => {
         iniciar();
-        document.getElementById("info").innerHTML = `<p style="color:var(--text-dim);">Aguardando leitura...</p>`;
-    }, 300);
+        info.innerHTML = `<p style="color:var(--text-dim); font-weight:600;">Aguardando nova leitura...</p>`;
+    }, 400);
 }
 
 window.addEventListener('load', iniciar);
