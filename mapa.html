@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Mapa do Laboratório</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns: repeat(5, 1fr);
+gap:15px;
+max-width:800px;
+margin:auto;
+}
+
+.pc{
+padding:20px;
+border-radius:10px;
+font-size:14px;
+transition:0.3s;
+}
+
+.livre{
+background:#22c55e;
+}
+
+.ocupado{
+background:#ef4444;
+}
+
+.turma{
+font-size:12px;
+opacity:0.8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>🖥️ Mapa do Laboratório</h2>
+
+<div class="grid" id="grid"></div>
+
+<script>
+
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// 🔄 atualizar a cada 2s
+setInterval(carregar, 2000)
+
+let estadoAnterior = ""
+
+// 🔥 MAPA DE TURMAS POR PC
+function getTurma(pcNome){
+
+const num = parseInt(pcNome.replace("PC",""))
+
+if(num % 3 === 1) return "1º ANO"
+if(num % 3 === 2) return "2º ANO"
+if(num % 3 === 0) return "3º ANO"
+
+return ""
+}
+
+async function carregar(){
+
+const { data: pcs } = await client
+.from("provas_terminais")
+.select("*")
+
+// 🔒 proteção
+if(!pcs) return
+
+// 🔥 ordenar corretamente
+pcs.sort((a, b) => {
+  const numA = parseInt(a.nome.replace("PC",""))
+  const numB = parseInt(b.nome.replace("PC",""))
+  return numA - numB
+})
+
+// 🔥 evitar piscando
+const estadoAtual = JSON.stringify(pcs)
+if(estadoAtual === estadoAnterior) return
+estadoAnterior = estadoAtual
+
+const grid = document.getElementById("grid")
+grid.innerHTML = ""
+
+for(let pc of pcs){
+
+let classe = pc.status === "livre" ? "livre" : "ocupado"
+
+// 🔥 turma do PC
+const turma = getTurma(pc.nome)
+
+let nomeAluno = ""
+
+// 🔥 buscar aluno (se tiver)
+if(pc.aluno_id){
+
+try{
+
+const { data: aluno } = await client
+.from("provas_alunos")
+.select("nome")
+.eq("id", pc.aluno_id)
+.single()
+
+if(aluno){
+nomeAluno = aluno.nome
+}
+
+}catch(e){
+nomeAluno = ""
+}
+
+}
+
+const bloco = `
+<div class="pc ${classe}">
+<b>${pc.nome}</b><br>
+${pc.status.toUpperCase()}<br>
+<span class="turma">${turma}</span><br>
+${nomeAluno}
+</div>
+`
+
+grid.innerHTML += bloco
+
+}
+
+}
+
+carregar()
+
+</script>
+
+</body>
+</html>

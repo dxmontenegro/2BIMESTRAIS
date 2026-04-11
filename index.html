@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sistema de Provas</title>
+<link rel="icon" type="image/png" href="imagem1.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background: linear-gradient(135deg, #0f172a, #1e1b4b);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+color:white;
+}
+
+.login-box{
+background:#111827;
+padding:30px;
+width:320px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 0 20px rgba(139,92,246,0.3);
+}
+
+.logo{
+width:80px;
+margin-bottom:10px;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:8px;
+border-radius:8px;
+border:none;
+background:#1e293b;
+color:white;
+}
+
+button{
+padding:10px;
+margin:5px;
+width:95%;
+background:#8b5cf6;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:8px;
+}
+
+button:hover{
+background:#7c3aed;
+}
+
+#erro{
+color:#f87171;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<img src="imagem1.png" class="logo">
+
+<h2>EEMTI DRAGÃO DO MAR</h2>
+<p>Sistema de Avaliação</p>
+
+<input id="email" type="email" placeholder="Email">
+<input id="senha" type="password" placeholder="Senha">
+
+<button onclick="login()">Entrar</button>
+
+<p id="erro"></p>
+
+</div>
+
+<script>
+
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
+// 👇 IGUAL AO SEU SISTEMA QUE FUNCIONA
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+async function login(){
+
+const email = document.getElementById("email").value
+const senha = document.getElementById("senha").value
+
+const { error } = await client.auth.signInWithPassword({
+email: email,
+password: senha
+})
+
+if(error){
+document.getElementById("erro").innerText = error.message
+return
+}
+
+// 👇 TESTE VISUAL
+alert("LOGIN OK")
+
+// 👇 REDIRECIONAMENTO SIMPLES
+window.location.href = "painel.html"
+
+}
+
+</script>
+
+</body>
+</html>

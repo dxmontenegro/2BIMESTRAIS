@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Cadastro de Aluno</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding:20px;
+margin:0;
+}
+
+.topo{
+text-align:left;
+margin-bottom:15px;
+}
+
+.topo button{
+background:#334155;
+border:none;
+padding:8px 12px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+.container{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+width:320px;
+margin:auto;
+}
+
+input, select{
+width:90%;
+padding:10px;
+margin:10px;
+border-radius:6px;
+border:none;
+}
+
+button{
+padding:10px;
+width:95%;
+background:#8b5cf6;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:8px;
+margin-top:5px;
+}
+
+#barcode{
+margin-top:15px;
+background:white;
+padding:10px;
+border-radius:6px;
+}
+
+#msg{
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topo">
+<button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<h2>Cadastro de Aluno</h2>
+
+<div class="container">
+
+<input id="matricula" placeholder="Matrícula">
+<input id="nome" placeholder="Nome">
+<input id="email" placeholder="Email">
+
+<select id="turma">
+<option>1A</option>
+<option>1B</option>
+<option>1C</option>
+<option>1D</option>
+<option>2A</option>
+<option>2B</option>
+<option>2C</option>
+<option>2D</option>
+<option>3A</option>
+<option>3B</option>
+<option>3C</option>
+</select>
+
+<button onclick="gerarCodigo()">Gerar Código de Barras</button>
+
+<svg id="barcode"></svg>
+
+<button onclick="salvar()">Salvar</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// 🔙 VOLTAR
+function voltar(){
+window.location.href = "painel.html"
+}
+
+// 🎯 GERAR CÓDIGO DE BARRAS
+function gerarCodigo(){
+
+const matricula = document.getElementById("matricula").value
+
+if(!matricula){
+alert("Digite a matrícula primeiro")
+return
+}
+
+const codigo = "ALUNO-" + matricula
+
+JsBarcode("#barcode", codigo, {
+format: "CODE128",
+displayValue: true
+})
+
+}
+
+// 💾 SALVAR NO BANCO
+async function salvar(){
+
+const matricula = document.getElementById("matricula").value
+const nome = document.getElementById("nome").value
+const email = document.getElementById("email").value
+const turma = document.getElementById("turma").value
+
+if(!matricula || !nome){
+document.getElementById("msg").innerText = "Preencha os campos obrigatórios"
+return
+}
+
+const codigo = "ALUNO-" + matricula
+
+const { error } = await client
+.from("provas_alunos")
+.insert([{ matricula, nome, email, turma, codigo_barras: codigo }])
+
+if(error){
+document.getElementById("msg").innerText = error.message
+}else{
+
+document.getElementById("msg").innerText = "Aluno cadastrado com sucesso!"
+
+// 🔥 LIMPAR CAMPOS
+document.getElementById("matricula").value = ""
+document.getElementById("nome").value = ""
+document.getElementById("email").value = ""
+document.getElementById("turma").selectedIndex = 0
+
+// 🔥 LIMPAR CÓDIGO DE BARRAS
+document.getElementById("barcode").innerHTML = ""
+
+}
+}
+
+</script>
+
+</body>
+</html>

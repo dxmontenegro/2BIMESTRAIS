@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Agenda de Provas</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding:20px;
+margin:0;
+}
+
+.topo{
+text-align:left;
+margin-bottom:15px;
+}
+
+.topo button{
+background:#334155;
+border:none;
+padding:8px 12px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+.container{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+width:300px;
+margin:auto;
+}
+
+select, input, button{
+padding:10px;
+margin:8px;
+width:90%;
+border-radius:6px;
+border:none;
+}
+
+button{
+background:#8b5cf6;
+color:white;
+cursor:pointer;
+}
+
+#msg{
+margin-top:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="topo">
+<button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<h2>📅 Agenda de Provas</h2>
+
+<div class="container">
+
+<input type="date" id="data">
+
+<select id="modalidade">
+<option value="INTEGRAL">Integral</option>
+<option value="NOTURNO">Noturno</option>
+</select>
+
+<select id="area">
+<option value="MAT1">Matemática</option>
+<option value="NAT1">Natureza</option>
+<option value="HUM1">Humanas</option>
+<option value="LIN1">Linguagens</option>
+</select>
+
+<button onclick="salvar()">Salvar / Atualizar</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+function voltar(){
+window.location.href = "painel.html"
+}
+
+async function salvar(){
+
+const data = document.getElementById("data").value
+const modalidade = document.getElementById("modalidade").value
+const area = document.getElementById("area").value
+
+if(!data){
+alert("Selecione a data")
+return
+}
+
+// 🔎 procurar se já existe (mesmo dia + mesma modalidade)
+const { data: existente } = await client
+.from("provas_agenda")
+.select("*")
+.eq("data", data)
+.eq("modalidade", modalidade)
+
+// 👉 se já existe → atualiza
+if(existente && existente.length > 0){
+
+await client
+.from("provas_agenda")
+.update({ area: area })
+.eq("data", data)
+.eq("modalidade", modalidade)
+
+document.getElementById("msg").innerText = "Agenda ATUALIZADA"
+
+}else{
+
+// 👉 se não existe → cria nova linha
+await client
+.from("provas_agenda")
+.insert([{
+data: data,
+modalidade: modalidade,
+area: area
+}])
+
+document.getElementById("msg").innerText = "Agenda CRIADA"
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
