@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Relatório de Alunos</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -9,78 +10,114 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:20px;
-margin:0;
-}
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin: 0;
+    }
 
-.topo{
-text-align:left;
-margin-bottom:15px;
-}
+    .topo {
+        text-align: left;
+        margin-bottom: 15px;
+        padding: 5px;
+    }
 
-.topo button{
-background:#334155;
-border:none;
-padding:8px 12px;
-color:white;
-border-radius:6px;
-cursor:pointer;
-}
+    .topo button {
+        background: #334155;
+        border: none;
+        padding: 10px 15px;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 
-.container{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-width:95%;
-margin:auto;
-}
+    .container {
+        background: #1e293b;
+        padding: 15px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        box-sizing: border-box;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
 
-select{
-padding:10px;
-margin:10px;
-border-radius:6px;
-}
+    h2 { font-size: 1.4rem; margin-bottom: 20px; }
 
-button{
-padding:10px;
-margin:10px;
-background:#8b5cf6;
-border:none;
-color:white;
-border-radius:6px;
-cursor:pointer;
-}
+    select {
+        width: 100%;
+        padding: 14px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: 2px solid #334155;
+        background: #0f172a;
+        color: white;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
 
-table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
-}
+    button.btn-pdf {
+        padding: 14px;
+        width: 100%;
+        background: #8b5cf6;
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
 
-th, td{
-padding:10px;
-border-bottom:1px solid #334155;
-}
+    #resumo {
+        display: flex;
+        justify-content: space-around;
+        background: #0f172a;
+        padding: 15px 5px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        border: 1px solid #334155;
+    }
 
-.status-ok{
-color:#22c55e;
-font-weight:bold;
-}
+    .resumo-item span {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: 5px;
+    }
 
-.status-no{
-color:#ef4444;
-font-weight:bold;
-}
+    /* Tabela Responsiva */
+    .table-wrapper {
+        overflow-x: auto; /* Permite scroll horizontal em telemóveis */
+        background: #1e293b;
+        border-radius: 8px;
+    }
 
-#resumo{
-margin-top:10px;
-font-size:18px;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    th, td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #334155;
+        text-align: left;
+    }
+
+    th { background: #334155; color: #94a3b8; font-weight: 500; }
+
+    .status-ok { color: #22c55e; font-weight: bold; }
+    .status-no { color: #ef4444; font-weight: bold; }
+
+    @media (max-width: 400px) {
+        th, td { padding: 10px 5px; font-size: 0.8rem; }
+    }
 </style>
 
 </head>
@@ -88,180 +125,130 @@ font-size:18px;
 <body>
 
 <div class="topo">
-<button onclick="voltar()">⬅ Voltar</button>
+    <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
 <h2>📊 Relatório de Alunos</h2>
 
 <div class="container">
+    <select id="turma" onchange="carregar()">
+        <option value="">Selecione a turma</option>
+        <option>1A</option>
+        <option>1B</option>
+        <option>1C</option>
+        <option>1D</option>
+        <option>2A</option>
+        <option>2B</option>
+        <option>2C</option>
+        <option>2D</option>
+        <option>3A</option>
+        <option>3B</option>
+        <option>3C</option>
+    </select>
 
-<select id="turma" onchange="carregar()">
-<option value="">Selecione a turma</option>
-<option>1A</option>
-<option>1B</option>
-<option>1C</option>
-<option>1D</option>
-<option>2A</option>
-<option>2B</option>
-<option>2C</option>
-<option>2D</option>
-<option>3A</option>
-<option>3B</option>
-<option>3C</option>
-</select>
+    <button class="btn-pdf" onclick="gerarPDF()">📄 Gerar PDF da Turma</button>
 
-<button onclick="gerarPDF()">📄 Gerar PDF da Turma</button>
+    <div id="resumo">
+        <div class="resumo-item">Total <span id="total">0</span></div>
+        <div class="resumo-item" style="color: #22c55e;">Fez <span id="fez">0</span></div>
+        <div class="resumo-item" style="color: #ef4444;">Não fez <span id="nao">0</span></div>
+    </div>
 
-<div id="resumo">
-Total: <span id="total">0</span> |
-✔ Fez: <span id="fez">0</span> |
-❌ Não fez: <span id="nao">0</span>
-</div>
-
-<table id="tabela">
-<thead>
-<tr>
-<th>Nome</th>
-<th>Email</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
+    <div class="table-wrapper">
+        <table id="tabela">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    function voltar(){ window.location.href = "painel.html" }
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    async function carregar(){
+        const turma = document.getElementById("turma").value
+        if(!turma) return
 
-// 🔙 VOLTAR
-function voltar(){
-window.location.href = "painel.html"
-}
+        const { data, error } = await client
+            .from("provas_alunos")
+            .select("*")
+            .eq("turma", turma)
 
-// 📊 CARREGAR DADOS
-async function carregar(){
+        if(error){
+            alert("Erro ao carregar: " + error.message)
+            return
+        }
 
-const turma = document.getElementById("turma").value
+        const tbody = document.querySelector("#tabela tbody")
+        tbody.innerHTML = ""
 
-if(!turma) return
+        let total = 0, fez = 0, nao = 0
 
-const { data, error } = await client
-.from("provas_alunos")
-.select("*")
-.eq("turma", turma)
+        data.forEach(aluno => {
+            total++
+            aluno.fez_prova ? fez++ : nao++
 
-if(error){
-alert("ERRO REAL: " + error.message)
-console.log(error)
-return
-}
+            const status = aluno.fez_prova 
+                ? `<span class="status-ok">✔ Fez</span>` 
+                : `<span class="status-no">❌ Não</span>`
 
-const tbody = document.querySelector("#tabela tbody")
-tbody.innerHTML = ""
+            const linha = `
+                <tr>
+                    <td>${aluno.nome}</td>
+                    <td>${status}</td>
+                </tr>
+            `
+            tbody.innerHTML += linha
+        })
 
-let total = 0
-let fez = 0
-let nao = 0
+        document.getElementById("total").innerText = total
+        document.getElementById("fez").innerText = fez
+        document.getElementById("nao").innerText = nao
+    }
 
-data.forEach(aluno => {
+    async function gerarPDF(){
+        const turma = document.getElementById("turma").value
+        if(!turma){ alert("Selecione uma turma"); return }
 
-total++
+        const { data, error } = await client
+            .from("provas_alunos")
+            .select("*")
+            .eq("turma", turma)
 
-if(aluno.fez_prova){
-fez++
-}else{
-nao++
-}
+        if(error || !data || data.length === 0){
+            alert("Erro ou nenhum dado encontrado.");
+            return
+        }
 
-const status = aluno.fez_prova
-? `<span class="status-ok">✔ Fez</span>`
-: `<span class="status-no">❌ Não fez</span>`
+        const { jsPDF } = window.jspdf
+        const doc = new jsPDF()
+        let y = 10, count = 0
 
-const linha = `
-<tr>
-<td>${aluno.nome}</td>
-<td>${aluno.email || "-"}</td>
-<td>${status}</td>
-</tr>
-`
+        data.forEach(aluno => {
+            doc.setFontSize(11)
+            doc.text("Nome: " + aluno.nome, 10, y)
+            doc.setFontSize(9)
+            doc.text("Código: " + aluno.codigo_barras, 10, y+10)
 
-tbody.innerHTML += linha
+            const canvas = document.createElement("canvas")
+            JsBarcode(canvas, aluno.codigo_barras, { displayValue: false })
+            doc.addImage(canvas.toDataURL("image/png"), "PNG", 120, y-5, 70, 15)
 
-})
-
-document.getElementById("total").innerText = total
-document.getElementById("fez").innerText = fez
-document.getElementById("nao").innerText = nao
-
-}
-
-// 📄 GERAR PDF
-async function gerarPDF(){
-
-const turma = document.getElementById("turma").value
-
-if(!turma){
-alert("Selecione uma turma")
-return
-}
-
-const { data, error } = await client
-.from("provas_alunos")
-.select("*")
-.eq("turma", turma)
-
-if(error){
-alert("Erro PDF: " + error.message)
-return
-}
-
-if(!data || data.length === 0){
-alert("Nenhum aluno")
-return
-}
-
-const { jsPDF } = window.jspdf
-const doc = new jsPDF()
-
-let y = 10
-let count = 0
-
-data.forEach(aluno => {
-
-doc.setFontSize(11)
-doc.text("Nome: " + aluno.nome, 10, y)
-
-doc.setFontSize(9)
-doc.text("Email: " + (aluno.email || "-"), 10, y+6)
-doc.text("Código: " + aluno.codigo_barras, 10, y+11)
-
-const canvas = document.createElement("canvas")
-JsBarcode(canvas, aluno.codigo_barras, { displayValue: false })
-
-const img = canvas.toDataURL("image/png")
-
-doc.addImage(img, "PNG", 120, y-5, 70, 15)
-
-y += 30
-count++
-
-if(count === 10){
-doc.addPage()
-y = 10
-count = 0
-}
-
-})
-
-doc.save("turma_" + turma + ".pdf")
-
-}
-
+            y += 25
+            count++
+            if(count === 11){ doc.addPage(); y = 10; count = 0; }
+        })
+        doc.save("turma_" + turma + ".pdf")
+    }
 </script>
 
 </body>
