@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpar Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .box { background: #1e293b; padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid #334155; margin-top: 20px; }
+        h2 { text-align: center; color: #22c55e; margin-top: 0; }
+        p { text-align: center; color: #94a3b8; font-size: 0.9rem; }
+        
+        select { 
+            width: 100%; padding: 16px; margin-top: 10px; border-radius: 10px; border: 2px solid #334155; 
+            background: #0f172a; color: white; font-size: 1rem; appearance: none;
+        }
+
+        button { 
+            width: 100%; padding: 16px; margin-top: 15px; border-radius: 10px; border: none; 
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        
+        .btn-liberar { background: #22c55e; color: #052e16; }
+        .btn-liberar:disabled { background: #1e3a2f; color: #4ade80; cursor: not-allowed; opacity: 0.6; }
+        
+        .btn-voltar { background: #334155; color: #cbd5e1; margin-top: 12px; }
+        
+        #status { margin-top: 20px; text-align: center; font-weight: 500; min-height: 24px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>✅ Limpar Terminal</h2>
+    <p>Selecione um computador ocupado para liberar:</p>
+    
+    <select id="pcSelect">
+        <option value="">Carregando terminais...</option>
+    </select>
+
+    <button id="btnAcao" class="btn-liberar" onclick="liberarPC()" disabled>DEIXAR LIVRE</button>
+    <button class="btn-voltar" onclick="location.href='painel.html'">VOLTAR</button>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const select = document.getElementById('pcSelect');
+    const btnAcao = document.getElementById('btnAcao');
+    const statusDiv = document.getElementById('status');
+
+    async function carregarOcupados() {
+        // Busca na tabela correta: provas_terminais
+        const { data: pcs, error } = await client
+            .from("provas_terminais")
+            .select("*")
+            .neq("status", "livre");
+
+        if (error) {
+            statusDiv.innerHTML = "❌ Erro ao conectar.";
+            console.error(error);
+            return;
+        }
+
+        if (!pcs || pcs.length === 0) {
+            select.innerHTML = '<option value="">Todos estão livres!</option>';
+            btnAcao.disabled = true;
+        } else {
+            select.innerHTML = '';
+            // Ordenar por nome (PC1, PC2...)
+            pcs.sort((a, b) => parseInt(a.nome.replace("PC","")) - parseInt(b.nome.replace("PC","")));
+            
+            pcs.forEach(pc => {
+                let opt = document.createElement('option');
+                opt.value = pc.nome;
+                opt.innerHTML = `🖥️ ${pc.nome} (Ocupado)`;
+                select.appendChild(opt);
+            });
+            btnAcao.disabled = false;
+        }
+    }
+
+    async function liberarPC() {
+        const nomePC = select.value;
+        if (!nomePC) return;
+
+        btnAcao.disabled = true;
+        statusDiv.innerHTML = "Limpando...";
+
+        // Atualiza conforme a estrutura da sua página mapa
+        const { error } = await client
+            .from("provas_terminais")
+            .update({ status: 'livre', aluno_id: null }) 
+            .eq('nome', nomePC);
+
+        if (error) {
+            statusDiv.innerHTML = "❌ Erro: " + error.message;
+            btnAcao.disabled = false;
+        } else {
+            statusDiv.innerHTML = `✅ ${nomePC} agora está LIVRE!`;
+            statusDiv.style.color = "#22c55e";
+            setTimeout(carregarOcupados, 1000);
+        }
+    }
+
+    // Inicia a listagem
+    carregarOcupados();
+</script>
+
+</body>
+</html>
