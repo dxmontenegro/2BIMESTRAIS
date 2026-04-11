@@ -2,74 +2,100 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastro de Aluno</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin: 0;
+    }
 
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:20px;
-margin:0;
-}
+    .topo {
+        text-align: left;
+        margin-bottom: 15px;
+        padding: 10px;
+    }
 
-.topo{
-text-align:left;
-margin-bottom:15px;
-}
+    .topo button {
+        background: #334155;
+        border: none;
+        padding: 10px 15px;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 
-.topo button{
-background:#334155;
-border:none;
-padding:8px 12px;
-color:white;
-border-radius:6px;
-cursor:pointer;
-}
+    .container {
+        background: #1e293b;
+        padding: 25px 15px;
+        border-radius: 12px;
+        width: 95%;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
 
-.container{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-width:320px;
-margin:auto;
-}
+    h2 { margin-top: 0; font-size: 1.5rem; }
 
-input, select{
-width:90%;
-padding:10px;
-margin:10px;
-border-radius:6px;
-border:none;
-}
+    input, select {
+        width: 100%;
+        padding: 14px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 2px solid #334155;
+        background: #0f172a;
+        color: white;
+        box-sizing: border-box; /* Garante que o padding não aumente a largura */
+        font-size: 1rem;
+    }
 
-button{
-padding:10px;
-width:95%;
-background:#8b5cf6;
-border:none;
-color:white;
-cursor:pointer;
-border-radius:8px;
-margin-top:5px;
-}
+    input:focus, select:focus {
+        border-color: #8b5cf6;
+        outline: none;
+    }
 
-#barcode{
-margin-top:15px;
-background:white;
-padding:10px;
-border-radius:6px;
-}
+    button {
+        padding: 15px;
+        width: 100%;
+        background: #8b5cf6;
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
 
-#msg{
-margin-top:10px;
-}
+    button:active {
+        transform: scale(0.98);
+        background: #7c3aed;
+    }
 
+    #barcode {
+        margin-top: 15px;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        max-width: 100%; /* Ajusta o código de barras ao celular */
+        height: auto;
+    }
+
+    #msg {
+        margin-top: 15px;
+        font-weight: bold;
+        min-height: 20px;
+    }
 </style>
 
 </head>
@@ -77,109 +103,105 @@ margin-top:10px;
 <body>
 
 <div class="topo">
-<button onclick="voltar()">⬅ Voltar</button>
+    <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
 <h2>Cadastro de Aluno</h2>
 
 <div class="container">
+    <input id="matricula" type="number" pattern="\[0-9]*" placeholder="Matrícula">
+    <input id="nome" placeholder="Nome Completo">
+    <input id="email" type="email" placeholder="Email">
 
-<input id="matricula" placeholder="Matrícula">
-<input id="nome" placeholder="Nome">
-<input id="email" placeholder="Email">
+    <select id="turma">
+        <option value="" disabled selected>Selecione a Turma</option>
+        <option>1A</option>
+        <option>1B</option>
+        <option>1C</option>
+        <option>1D</option>
+        <option>2A</option>
+        <option>2B</option>
+        <option>2C</option>
+        <option>2D</option>
+        <option>3A</option>
+        <option>3B</option>
+        <option>3C</option>
+    </select>
 
-<select id="turma">
-<option>1A</option>
-<option>1B</option>
-<option>1C</option>
-<option>1D</option>
-<option>2A</option>
-<option>2B</option>
-<option>2C</option>
-<option>2D</option>
-<option>3A</option>
-<option>3B</option>
-<option>3C</option>
-</select>
+    <button onclick="gerarCodigo()">Gerar Código de Barras</button>
 
-<button onclick="gerarCodigo()">Gerar Código de Barras</button>
+    <div style="overflow-x: auto; margin-top: 10px;">
+        <svg id="barcode"></svg>
+    </div>
 
-<svg id="barcode"></svg>
+    <button onclick="salvar()" style="background: #10b981;">Salvar Aluno</button>
 
-<button onclick="salvar()">Salvar</button>
-
-<p id="msg"></p>
-
+    <p id="msg"></p>
 </div>
 
 <script>
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
 
-const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    function voltar(){
+        window.location.href = "painel.html"
+    }
 
-// 🔙 VOLTAR
-function voltar(){
-window.location.href = "painel.html"
-}
+    function gerarCodigo(){
+        const matricula = document.getElementById("matricula").value
+        if(!matricula){
+            alert("Digite a matrícula primeiro")
+            return
+        }
 
-// 🎯 GERAR CÓDIGO DE BARRAS
-function gerarCodigo(){
+        const codigo = "ALUNO-" + matricula
+        JsBarcode("#barcode", codigo, {
+            format: "CODE128",
+            displayValue: true,
+            width: 2,
+            height: 60
+        })
+    }
 
-const matricula = document.getElementById("matricula").value
+    async function salvar(){
+        const matricula = document.getElementById("matricula").value
+        const nome = document.getElementById("nome").value
+        const email = document.getElementById("email").value
+        const turma = document.getElementById("turma").value
+        const msg = document.getElementById("msg");
 
-if(!matricula){
-alert("Digite a matrícula primeiro")
-return
-}
+        if(!matricula || !nome || !turma){
+            msg.innerText = "⚠️ Preencha os campos obrigatórios";
+            msg.style.color = "#f59e0b";
+            return
+        }
 
-const codigo = "ALUNO-" + matricula
+        msg.innerText = "Salvando...";
+        msg.style.color = "white";
 
-JsBarcode("#barcode", codigo, {
-format: "CODE128",
-displayValue: true
-})
+        const codigo = "ALUNO-" + matricula
 
-}
+        const { error } = await client
+            .from("provas_alunos")
+            .insert([{ matricula, nome, email, turma, codigo_barras: codigo }])
 
-// 💾 SALVAR NO BANCO
-async function salvar(){
+        if(error){
+            msg.innerText = "❌ " + error.message;
+            msg.style.color = "#ef4444";
+        } else {
+            msg.innerText = "✅ Aluno cadastrado com sucesso!";
+            msg.style.color = "#10b981";
 
-const matricula = document.getElementById("matricula").value
-const nome = document.getElementById("nome").value
-const email = document.getElementById("email").value
-const turma = document.getElementById("turma").value
-
-if(!matricula || !nome){
-document.getElementById("msg").innerText = "Preencha os campos obrigatórios"
-return
-}
-
-const codigo = "ALUNO-" + matricula
-
-const { error } = await client
-.from("provas_alunos")
-.insert([{ matricula, nome, email, turma, codigo_barras: codigo }])
-
-if(error){
-document.getElementById("msg").innerText = error.message
-}else{
-
-document.getElementById("msg").innerText = "Aluno cadastrado com sucesso!"
-
-// 🔥 LIMPAR CAMPOS
-document.getElementById("matricula").value = ""
-document.getElementById("nome").value = ""
-document.getElementById("email").value = ""
-document.getElementById("turma").selectedIndex = 0
-
-// 🔥 LIMPAR CÓDIGO DE BARRAS
-document.getElementById("barcode").innerHTML = ""
-
-}
-}
-
+            // Limpar campos
+            document.getElementById("matricula").value = ""
+            document.getElementById("nome").value = ""
+            document.getElementById("email").value = ""
+            document.getElementById("turma").value = ""
+            document.getElementById("barcode").innerHTML = ""
+        }
+    }
 </script>
 
 </body>
