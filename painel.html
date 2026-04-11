@@ -1,62 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel - Sistema de Provas</title>
-<style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: white; }
-    .topo { background: #28016b; padding: 20px; text-align: center; border-bottom: 2px solid #8b5cf6; }
-    .logo { width: 50px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel - EEMTI Dragão do Mar</title>
+    <link rel="icon" type="image/png" href="imagem1.png">
     
-    .container { 
-        padding: 20px; 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-        gap: 15px; 
-    }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    .card { 
-        background: #1e293b; 
-        padding: 20px; 
-        border-radius: 12px; 
-        text-align: center; 
-        cursor: pointer; 
-        transition: 0.2s;
-        border: 1px solid #334155;
-    }
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #f87171;
+        }
 
-    .card:hover { background: #334155; transform: translateY(-3px); }
-    h3 { margin: 10px 0 0; font-size: 1.1rem; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Otimização para Celular */
-    @media (max-width: 480px) {
-        .container { grid-template-columns: 1fr 1fr; } /* 2 colunas no celular */
-        h3 { font-size: 0.9rem; }
-    }
-</style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        /* Topo */
+        .header-painel {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .logo-main {
+            width: 80px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4));
+        }
+
+        h2 { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+        .subtitle { color: var(--primary); font-weight: 600; font-size: 14px; text-transform: uppercase; margin-top: 5px; }
+
+        /* Grid de Cartões */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 30px 20px;
+            border-radius: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: #243049;
+            border-color: var(--primary);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+
+        .card i {
+            font-size: 32px;
+            color: var(--primary);
+            transition: 0.3s;
+        }
+
+        .card:hover i {
+            transform: scale(1.1);
+            color: white;
+        }
+
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Botão Sair Especial */
+        .btn-logout {
+            margin: 40px auto 0 auto;
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Rodapé */
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 11px;
+            padding-bottom: 10px;
+        }
+        footer b { color: var(--text); }
+        footer i { color: var(--primary); margin: 0 3px; }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .container { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .card { padding: 20px 10px; }
+            h2 { font-size: 20px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="topo">
-    <img src="imagem1.png" class="logo">
-    <h2>EEMTI DRAGÃO DO MAR</h2>
-    <p>Painel de Avaliação</p>
-</div>
-
-<div class="container">
-    <div class="card" onclick="ir('cadastro.html')"><h3>👨‍🎓 Cadastro</h3></div>
-    <div class="card" onclick="ir('agenda.html')"><h3>📅 Agenda</h3></div>
-    <div class="card" onclick="ir('relatorio.html')"><h3>📊 Relatório</h3></div>
-    <div class="card" onclick="ir('mapa.html')"><h3>🖥️ Mapa Lab</h3></div>
-    <div class="card" onclick="ir('liberar.html')"><h3>📡 Liberar</h3></div>
-    <div class="card" onclick="ir('limpar.html')" style="border-color: #22c55e;">
-        <h3>✅ Limpar Terminal</h3>
+    <div class="header-painel">
+        <img src="imagem1.png" class="logo-main">
+        <h2>EEMTI DRAGÃO DO MAR</h2>
+        <p class="subtitle">Sistema de Avaliações</p>
     </div>
-</div>
+
+    <div class="container">
+        <div class="card" onclick="ir('cadastro.html')">
+            <i class="fas fa-user-plus"></i>
+            <h3>CADASTRAR</h3>
+        </div>
+        
+        <div class="card" onclick="ir('agenda.html')">
+            <i class="fas fa-calendar-alt"></i>
+            <h3>AGENDA</h3>
+        </div>
+
+        <div class="card" onclick="ir('liberar.html')">
+            <i class="fas fa-qrcode"></i>
+            <h3>LIBERAR</h3>
+        </div>
+
+        <div class="card" onclick="ir('mapa.html')">
+            <i class="fas fa-desktop"></i>
+            <h3>MAPA LAB</h3>
+        </div>
+
+        <div class="card" onclick="ir('relatorio.html')">
+            <i class="fas fa-file-invoice"></i>
+            <h3>RELATÓRIOS</h3>
+        </div>
+
+        <div class="card" onclick="ir('limpar.html')">
+            <i class="fas fa-broom"></i>
+            <h3>LIMPAR</h3>
+        </div>
+    </div>
+
+    <button class="btn-logout" onclick="sair()">
+        <i class="fas fa-power-off"></i> SAIR DO SISTEMA
+    </button>
+
+    <footer>
+        <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+        <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+    </footer>
 
 <script>
-    function ir(pagina){ window.location.href = pagina; }
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    function ir(pagina) {
+        window.location.href = pagina;
+    }
+
+    async function sair() {
+        await client.auth.signOut();
+        window.location.href = "index.html";
+    }
 </script>
 
 </body>
