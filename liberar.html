@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner Fiscal - EEMTI Dragão do Mar</title>
+    <link rel="icon" type="image/png" href="imagem1.png">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* Navegação */
+        .nav-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-sair { color: var(--danger); }
+        .modo-fiscal { font-weight: 800; font-size: 12px; color: var(--primary); letter-spacing: 1px; }
+
+        /* Scanner */
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            height: 40vh; 
+            margin: 0 auto;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        #reader video {
+            position: absolute;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
+        /* Mira do Scanner */
+        .mira {
+            position: absolute;
+            width: 240px;
+            height: 140px;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            box-shadow: 0 0 0 4000px rgba(15, 23, 42, 0.7);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .mira::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 5%;
+            width: 90%; height: 2px;
+            background: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+            animation: scanLine 2s infinite ease-in-out;
+        }
+
+        @keyframes scanLine {
+            0%, 100% { transform: translateY(-40px); opacity: 0.2; }
+            50% { transform: translateY(40px); opacity: 1; }
+        }
+
+        /* Container de Informações */
+        .container {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 24px;
+            margin: 15px auto 0 auto;
+            width: 100%;
+            max-width: 500px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-acao {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-acao:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
+        .info-box {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 20px;
+            border-radius: 16px;
+            flex-grow: 1;
+            text-align: center;
+            border: 1px dashed rgba(139, 92, 246, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pc-destaque {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--success);
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            display: block;
+            margin: 10px 0;
+        }
+
+        /* Rodapé */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 11px;
+            padding-bottom: 10px;
+        }
+        footer b { color: var(--text); }
+        footer i { color: var(--primary); margin: 0 3px; }
+    </style>
+</head>
+
+<body>
+
+    <div class="nav-top">
+        <button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
+        <div class="modo-fiscal"><i class="fas fa-shield-alt"></i> MODO FISCAL</div>
+        <button class="btn-nav btn-sair" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+
+    <div id="reader">
+        <div class="mira"></div>
+    </div>
+
+    <div class="container">
+        <button class="btn-acao" onclick="reiniciar()">
+            <i class="fas fa-sync-alt"></i> NOVA LEITURA
+        </button>
+        
+        <div class="info-box" id="info">
+            <p id="msgStatus" style="color: var(--text-dim);">Aguardando leitura do código de barras...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+        <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+    </footer>
+
+<script>
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+function voltar(){ window.location.href = "painel.html" }
+async function sair() { await client.auth.signOut(); window.location.href = "index.html"; }
+
+async function liberar(codigo){
+    codigo = codigo.trim();
+    if (navigator.vibrate) navigator.vibrate(100);
+
+    document.getElementById("info").innerHTML = `<p>Buscando aluno...</p><h3 style="color:var(--primary)">${codigo}</h3>`;
+
+    const { data: aluno, error } = await client.from("provas_alunos").select("*").eq("codigo_barras", codigo).single();
+
+    if(error || !aluno){
+        document.getElementById("info").innerHTML = `
+            <i class="fas fa-user-times" style="font-size:30px; color:var(--danger); margin-bottom:10px;"></i>
+            <p style="color:var(--danger); font-weight:bold;">ALUNO NÃO ENCONTRADO</p>
+            <p style="font-size:12px; color:var(--text-dim)">Verifique o código e tente novamente.</p>
+        `;
+        return;
+    }
+
+    const ano = aluno.turma.charAt(0);
+    const { data: pcs } = await client.from("provas_terminais").select("*").eq("status", "livre").eq("ano", parseInt(ano)).limit(1);
+
+    if(!pcs || pcs.length === 0){
+        document.getElementById("info").innerHTML = `
+            <i class="fas fa-exclamation-triangle" style="font-size:30px; color:#fbbf24; margin-bottom:10px;"></i>
+            <p><b>${aluno.nome}</b></p>
+            <p style="color:#fbbf24; font-weight:bold;">SEM PCS LIVRES PARA O ${ano}º ANO</p>
+        `;
+        return;
+    }
+
+    const pc = pcs[0];
+
+    // Ações no Banco
+    await client.from("provas_terminais").update({ status: "ocupado", aluno_id: aluno.id }).eq("id", pc.id);
+    await client.from("provas_alunos").update({ fez_prova: true }).eq("id", aluno.id);
+
+    document.getElementById("info").innerHTML = `
+        <i class="fas fa-check-circle" style="font-size:30px; color:var(--success); margin-bottom:10px;"></i>
+        <p style="color:var(--text-dim); font-size:12px; text-transform:uppercase;">Acesso Liberado para:</p>
+        <strong style="font-size:18px; display:block; margin-bottom:15px;">${aluno.nome}</strong>
+        <p style="color:var(--text-dim); font-size:12px;">ENCAMINHE PARA O:</p>
+        <span class="pc-destaque">${pc.nome}</span>
+    `;
+}
+
+function iniciar(){
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#reader'),
+            constraints: { facingMode: "environment" }
+        },
+        decoder: {
+            readers: ["code_128_reader", "ean_reader"],
+            multiple: false
+        },
+        locate: true
+    }, function(err) {
+        if (err) { 
+            document.getElementById("msgStatus").innerText = "Erro ao acessar câmera.";
+            return; 
+        }
+        Quagga.start();
+    });
+}
+
+Quagga.onDetected(function(data) {
+    const codigo = data.codeResult.code;
+    liberar(codigo);
+    Quagga.stop();
+});
+
+function reiniciar(){
+    document.getElementById("info").innerHTML = `<p style="color:var(--text-dim);">Reiniciando câmera...</p>`;
+    Quagga.stop();
+    const reader = document.querySelector('#reader');
+    const videos = reader.querySelectorAll('video, canvas');
+    videos.forEach(v => v.remove());
+
+    setTimeout(() => {
+        iniciar();
+        document.getElementById("info").innerHTML = `<p style="color:var(--text-dim);">Aguardando leitura...</p>`;
+    }, 300);
+}
+
+window.addEventListener('load', iniciar);
+</script>
+
+</body>
+</html>
