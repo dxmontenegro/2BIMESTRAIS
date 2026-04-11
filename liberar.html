@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner Fiscal - EEMTI Dragão do Mar</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #8b5cf6;
+            --success: #22c55e;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .topo button {
+            background: #334155;
+            border: none;
+            padding: 12px 18px;
+            color: white;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        h2 { font-size: 1.4rem; margin: 10px 0; }
+
+        /* Estilização do Scanner */
+        #reader {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            line-height: 0;
+        }
+
+        #reader video {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+        }
+
+        /* Mira de enquadramento */
+        #reader::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%; height: 30%;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            flex-grow: 1;
+        }
+
+        .btn-acao {
+            width: 100%;
+            padding: 18px;
+            margin-top: 15px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .info {
+            margin-top: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 18px;
+            border-radius: 14px;
+            text-align: left;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Resultado em destaque */
+        .resultado-pc {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--success);
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topo">
+        <button onclick="voltar()">⬅ VOLTAR</button>
+        <div style="color: var(--primary); font-weight: bold;">FISCAL</div>
+    </div>
+
+    <h2>📡 Escanear Aluno</h2>
+
+    <div class="container">
+        <div id="reader"></div>
+
+        <button class="btn-acao" onclick="reiniciar()">🔄 NOVA LEITURA</button>
+
+        <div class="info" id="info">
+            <p style="margin:0; color: #94a3b8;"><b>Status:</b></p>
+            <p id="msgStatus" style="margin:5px 0 0 0;">Aguardando QR/Código de Barras...</p>
+        </div>
+    </div>
+
+<script>
+const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+function voltar(){ window.location.href = "painel.html" }
+
+async function liberar(codigo){
+    codigo = codigo.trim()
+    
+    // Feedback tátil (Vibra se for Android)
+    if (navigator.vibrate) navigator.vibrate(100);
+
+    document.getElementById("msgStatus").innerHTML = "Buscando aluno: " + codigo;
+
+    const { data: aluno, error } = await client
+        .from("provas_alunos")
+        .select("*")
+        .eq("codigo_barras", codigo)
+        .single()
+
+    if(error || !aluno){
+        document.getElementById("info").innerHTML = `<p style="color:#f87171;">❌ <b>Aluno não encontrado!</b></p><p>Código: ${codigo}</p>`;
+        return;
+    }
+
+    const ano = aluno.turma.charAt(0);
+
+    const { data: pcs } = await client
+        .from("provas_terminais")
+        .select("*")
+        .eq("status", "livre")
+        .eq("ano", parseInt(ano))
+        .limit(1)
+
+    if(!pcs || pcs.length === 0){
+        document.getElementById("info").innerHTML = `<p><b>${aluno.nome}</b></p><p style="color:#fbbf24;">⚠️ Nenhum PC livre para o ${ano}º ano!</p>`;
+        return;
+    }
+
+    const pc = pcs[0];
+
+    await client
+        .from("provas_terminais")
+        .update({ status: "ocupado", aluno_id: aluno.id })
+        .eq("id", pc.id)
+
+    // Layout de sucesso para facilitar a visão do fiscal à distância
+    document.getElementById("info").innerHTML = `
+        <div style="text-align:center">
+            <p style="margin:0">ALUNO LIBERADO!</p>
+            <strong style="font-size:18px">${aluno.nome}</strong>
+            <p style="margin:10px 0 5px 0; color:#94a3b8">DIRECIONE PARA O:</p>
+            <span class="resultado-pc">${pc.nome}</span>
+        </div>
+    `;
+}
+
+function iniciar(){
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#reader'),
+            constraints: {
+                facingMode: "environment",
+                aspectRatio: { min: 1, max: 2 }
+            }
+        },
+        decoder: {
+            readers: ["code_128_reader", "ean_reader"], // Adicionado EAN caso mude o padrão
+            multiple: false
+        },
+        locate: true // Ajuda a achar o código na imagem
+    }, function(err) {
+        if (err) { alert("Erro na câmera: " + err); return; }
+        Quagga.start();
+    });
+}
+
+Quagga.onDetected(function(data) {
+    const codigo = data.codeResult.code;
+    liberar(codigo);
+    Quagga.stop();
+});
+
+function reiniciar(){
+    document.getElementById("info").innerHTML = `<p style="margin:0; color: #94a3b8;"><b>Status:</b></p><p id="msgStatus" style="margin:5px 0 0 0;">Aguardando leitura...</p>`;
+    Quagga.start();
+}
+
+window.addEventListener('load', iniciar);
+</script>
+
+</body>
+</html>
