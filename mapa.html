@@ -1,155 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Mapa do Laboratório</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mapa Lab - EEMTI Dragão do Mar</title>
+    <link rel="icon" type="image/png" href="imagem1.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --primary: #8b5cf6;
+            --text: #f8fafc; --text-dim: #94a3b8;
+            --success: #10b981; --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text); min-height: 100vh; display: flex; flex-direction: column; padding: 15px;
+        }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 900px; width: 100%; margin: 0 auto 20px auto; }
+        .btn-nav { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); padding: 8px 15px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-sair { color: var(--danger); }
+        .header-mapa { text-align: center; margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; max-width: 1000px; width: 100%; margin: 0 auto; flex-grow: 1; }
+        
+        /* O PC agora tem uma transição suave de cor */
+        .pc {
+            background: var(--card); padding: 15px 10px; border-radius: 16px; text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.5s, border 0.5s, transform 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .pc-icon { font-size: 24px; margin-bottom: 8px; transition: color 0.5s; }
+        
+        .livre { border-bottom: 4px solid var(--success); }
+        .livre .pc-icon { color: var(--success); }
+        .ocupado { border-bottom: 4px solid var(--danger); }
+        .ocupado .pc-icon { color: var(--danger); }
 
-<style>
+        .pc-nome { font-weight: 800; font-size: 14px; }
+        .pc-status { font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
+        .pc-aluno { font-size: 11px; font-weight: 600; color: var(--primary); width: 95%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:20px;
-}
-
-.grid{
-display:grid;
-grid-template-columns: repeat(5, 1fr);
-gap:15px;
-max-width:800px;
-margin:auto;
-}
-
-.pc{
-padding:20px;
-border-radius:10px;
-font-size:14px;
-transition:0.3s;
-}
-
-.livre{
-background:#22c55e;
-}
-
-.ocupado{
-background:#ef4444;
-}
-
-.turma{
-font-size:12px;
-opacity:0.8;
-}
-
-</style>
-
+        footer { margin-top: 40px; text-align: center; color: var(--text-dim); font-size: 11px; padding-bottom: 10px; }
+        @media (max-width: 480px) { .grid { grid-template-columns: 1fr 1fr; } }
+    </style>
 </head>
-
 <body>
 
-<h2>🖥️ Mapa do Laboratório</h2>
+    <div class="nav-top">
+        <button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
+        <button class="btn-nav btn-sair" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
 
-<div class="grid" id="grid"></div>
+    <div class="header-mapa">
+        <h2><i class="fas fa-desktop"></i> Monitoramento em Tempo Real</h2>
+    </div>
+
+    <div class="grid" id="grid">
+        </div>
+
+    <footer>
+        <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+        <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+    </footer>
 
 <script>
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    function voltar() { window.location.href = "painel.html"; }
+    async function sair() { await client.auth.signOut(); window.location.href = "index.html"; }
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    // Função para criar os PCs apenas na primeira carga
+    async function inicializarGrid() {
+        const { data: pcs } = await client.from("provas_terminais").select("nome").order('nome');
+        const grid = document.getElementById("grid");
+        
+        pcs.sort((a, b) => parseInt(a.nome.replace("PC","")) - parseInt(b.nome.replace("PC","")));
 
-// 🔄 atualizar a cada 2s
-setInterval(carregar, 2000)
+        pcs.forEach(pc => {
+            grid.innerHTML += `
+                <div class="pc" id="card-${pc.nome}">
+                    <i class="fas fa-desktop pc-icon" id="icon-${pc.nome}"></i>
+                    <div class="pc-nome">${pc.nome}</div>
+                    <div class="pc-status" id="status-${pc.nome}">---</div>
+                    <div class="pc-aluno" id="aluno-${pc.nome}">---</div>
+                </div>
+            `;
+        });
+        atualizarStatus();
+    }
 
-let estadoAnterior = ""
+    // Função que apenas altera os dados, sem apagar o HTML
+    async function atualizarStatus() {
+        const { data: pcs } = await client.from("provas_terminais").select("*");
+        
+        for (let pc of pcs) {
+            const card = document.getElementById(`card-${pc.nome}`);
+            const icon = document.getElementById(`icon-${pc.nome}`);
+            const statusTxt = document.getElementById(`status-${pc.nome}`);
+            const alunoTxt = document.getElementById(`aluno-${pc.nome}`);
 
-// 🔥 MAPA DE TURMAS POR PC
-function getTurma(pcNome){
+            if (!card) continue;
 
-const num = parseInt(pcNome.replace("PC",""))
+            // Atualiza Classes (Cores)
+            card.className = `pc ${pc.status}`;
+            icon.className = pc.status === 'livre' ? 'fas fa-desktop pc-icon' : 'fas fa-user-lock pc-icon';
+            statusTxt.innerText = pc.status;
 
-if(num % 3 === 1) return "1º ANO"
-if(num % 3 === 2) return "2º ANO"
-if(num % 3 === 0) return "3º ANO"
+            // Busca nome do aluno se estiver ocupado
+            if (pc.aluno_id) {
+                const { data: aluno } = await client.from("provas_alunos").select("nome").eq("id", pc.aluno_id).single();
+                alunoTxt.innerText = aluno ? aluno.nome : "---";
+            } else {
+                alunoTxt.innerText = "---";
+            }
+        }
+    }
 
-return ""
-}
-
-async function carregar(){
-
-const { data: pcs } = await client
-.from("provas_terminais")
-.select("*")
-
-// 🔒 proteção
-if(!pcs) return
-
-// 🔥 ordenar corretamente
-pcs.sort((a, b) => {
-  const numA = parseInt(a.nome.replace("PC",""))
-  const numB = parseInt(b.nome.replace("PC",""))
-  return numA - numB
-})
-
-// 🔥 evitar piscando
-const estadoAtual = JSON.stringify(pcs)
-if(estadoAtual === estadoAnterior) return
-estadoAnterior = estadoAtual
-
-const grid = document.getElementById("grid")
-grid.innerHTML = ""
-
-for(let pc of pcs){
-
-let classe = pc.status === "livre" ? "livre" : "ocupado"
-
-// 🔥 turma do PC
-const turma = getTurma(pc.nome)
-
-let nomeAluno = ""
-
-// 🔥 buscar aluno (se tiver)
-if(pc.aluno_id){
-
-try{
-
-const { data: aluno } = await client
-.from("provas_alunos")
-.select("nome")
-.eq("id", pc.aluno_id)
-.single()
-
-if(aluno){
-nomeAluno = aluno.nome
-}
-
-}catch(e){
-nomeAluno = ""
-}
-
-}
-
-const bloco = `
-<div class="pc ${classe}">
-<b>${pc.nome}</b><br>
-${pc.status.toUpperCase()}<br>
-<span class="turma">${turma}</span><br>
-${nomeAluno}
-</div>
-`
-
-grid.innerHTML += bloco
-
-}
-
-}
-
-carregar()
-
+    inicializarGrid();
+    setInterval(atualizarStatus, 3000); // Atualiza sem piscar
 </script>
-
 </body>
 </html>
