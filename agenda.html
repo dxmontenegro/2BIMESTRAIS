@@ -2,59 +2,109 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agenda de Provas</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:20px;
-margin:0;
-}
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        margin: 0;
+    }
 
-.topo{
-text-align:left;
-margin-bottom:15px;
-}
+    .topo {
+        text-align: left;
+        margin-bottom: 20px;
+    }
 
-.topo button{
-background:#334155;
-border:none;
-padding:8px 12px;
-color:white;
-border-radius:6px;
-cursor:pointer;
-}
+    .topo button {
+        background: #334155;
+        border: none;
+        padding: 10px 16px;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 
-.container{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-width:300px;
-margin:auto;
-}
+    .container {
+        background: #1e293b;
+        padding: 25px 20px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        border: 1px solid #334155;
+        box-sizing: border-box;
+    }
 
-select, input, button{
-padding:10px;
-margin:8px;
-width:90%;
-border-radius:6px;
-border:none;
-}
+    h2 { 
+        margin-top: 0; 
+        font-size: 1.6rem;
+        color: #f1f5f9;
+    }
 
-button{
-background:#8b5cf6;
-color:white;
-cursor:pointer;
-}
+    label {
+        display: block;
+        text-align: left;
+        margin: 15px 0 5px 5px;
+        font-size: 0.9rem;
+        color: #94a3b8;
+    }
 
-#msg{
-margin-top:10px;
-}
+    select, input {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 5px;
+        border-radius: 10px;
+        border: 2px solid #334155;
+        background: #0f172a;
+        color: white;
+        font-size: 1rem;
+        box-sizing: border-box;
+        appearance: none; /* Remove seta padrão em alguns browsers */
+    }
+
+    input:focus, select:focus {
+        border-color: #8b5cf6;
+        outline: none;
+    }
+
+    button.btn-acao {
+        padding: 16px;
+        width: 100%;
+        background: #8b5cf6;
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 10px;
+        margin-top: 25px;
+        font-size: 1.1rem;
+        transition: 0.2s;
+    }
+
+    button.btn-acao:active {
+        transform: scale(0.98);
+        background: #7c3aed;
+    }
+
+    #msg {
+        margin-top: 20px;
+        font-weight: bold;
+        padding: 10px;
+        border-radius: 8px;
+        min-height: 24px;
+    }
+
+    .sucesso { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    .erro { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 </style>
 
 </head>
@@ -62,91 +112,103 @@ margin-top:10px;
 <body>
 
 <div class="topo">
-<button onclick="voltar()">⬅ Voltar</button>
+    <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
 <h2>📅 Agenda de Provas</h2>
 
 <div class="container">
+    <label>Data da Avaliação</label>
+    <input type="date" id="data">
 
-<input type="date" id="data">
+    <label>Turno/Modalidade</label>
+    <select id="modalidade">
+        <option value="INTEGRAL">Integral</option>
+        <option value="NOTURNO">Noturno</option>
+    </select>
 
-<select id="modalidade">
-<option value="INTEGRAL">Integral</option>
-<option value="NOTURNO">Noturno</option>
-</select>
+    <label>Área do Conhecimento</label>
+    <select id="area">
+        <option value="MAT1">Matemática</option>
+        <option value="NAT1">Natureza</option>
+        <option value="HUM1">Humanas</option>
+        <option value="LIN1">Linguagens</option>
+    </select>
 
-<select id="area">
-<option value="MAT1">Matemática</option>
-<option value="NAT1">Natureza</option>
-<option value="HUM1">Humanas</option>
-<option value="LIN1">Linguagens</option>
-</select>
+    <button class="btn-acao" onclick="salvar()">Salvar / Atualizar</button>
 
-<button onclick="salvar()">Salvar / Atualizar</button>
-
-<p id="msg"></p>
-
+    <p id="msg"></p>
 </div>
 
 <script>
+    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
 
-const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
+    function voltar(){
+        window.location.href = "painel.html"
+    }
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    async function salvar(){
+        const dataVal = document.getElementById("data").value
+        const modalidade = document.getElementById("modalidade").value
+        const area = document.getElementById("area").value
+        const msg = document.getElementById("msg");
 
-function voltar(){
-window.location.href = "painel.html"
-}
+        if(!dataVal){
+            msg.innerText = "⚠️ Selecione a data!";
+            msg.className = "erro";
+            return
+        }
 
-async function salvar(){
+        msg.innerText = "Processando...";
+        msg.className = "";
 
-const data = document.getElementById("data").value
-const modalidade = document.getElementById("modalidade").value
-const area = document.getElementById("area").value
+        // 🔎 procurar se já existe (mesmo dia + mesma modalidade)
+        const { data: existente, error: fetchError } = await client
+            .from("provas_agenda")
+            .select("*")
+            .eq("data", dataVal)
+            .eq("modalidade", modalidade)
 
-if(!data){
-alert("Selecione a data")
-return
-}
+        if(fetchError) {
+            msg.innerText = "Erro: " + fetchError.message;
+            msg.className = "erro";
+            return;
+        }
 
-// 🔎 procurar se já existe (mesmo dia + mesma modalidade)
-const { data: existente } = await client
-.from("provas_agenda")
-.select("*")
-.eq("data", data)
-.eq("modalidade", modalidade)
+        let resError;
 
-// 👉 se já existe → atualiza
-if(existente && existente.length > 0){
+        if(existente && existente.length > 0){
+            // 👉 se já existe → atualiza
+            const { error } = await client
+                .from("provas_agenda")
+                .update({ area: area })
+                .eq("data", dataVal)
+                .eq("modalidade", modalidade)
+            resError = error;
+            msg.innerText = "✅ Agenda ATUALIZADA com sucesso!";
+        } else {
+            // 👉 se não existe → cria nova linha
+            const { error } = await client
+                .from("provas_agenda")
+                .insert([{
+                    data: dataVal,
+                    modalidade: modalidade,
+                    area: area
+                }])
+            resError = error;
+            msg.innerText = "🚀 Agenda CRIADA com sucesso!";
+        }
 
-await client
-.from("provas_agenda")
-.update({ area: area })
-.eq("data", data)
-.eq("modalidade", modalidade)
-
-document.getElementById("msg").innerText = "Agenda ATUALIZADA"
-
-}else{
-
-// 👉 se não existe → cria nova linha
-await client
-.from("provas_agenda")
-.insert([{
-data: data,
-modalidade: modalidade,
-area: area
-}])
-
-document.getElementById("msg").innerText = "Agenda CRIADA"
-
-}
-
-}
-
+        if(resError) {
+            msg.innerText = "❌ Erro ao salvar: " + resError.message;
+            msg.className = "erro";
+        } else {
+            msg.className = "sucesso";
+        }
+    }
 </script>
 
 </body>
