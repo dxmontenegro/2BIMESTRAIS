@@ -27,9 +27,13 @@
 
         body {
             font-family: -apple-system, system-ui, sans-serif;
+            /* CORREÇÃO PARA O FUNDO NO TELEMÓVEL */
             background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background-attachment: fixed;
+            background-size: cover;
             color: var(--text);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             padding: 15px;
@@ -41,7 +45,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            max-width: 500px;
+            max-width: 450px;
             width: 100%;
             margin-left: auto;
             margin-right: auto;
@@ -56,7 +60,6 @@
             font-size: 12px;
             cursor: pointer;
             transition: 0.3s;
-            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -71,7 +74,7 @@
             width: 100%;
             max-width: 450px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 25px 20px;
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -79,10 +82,10 @@
             flex-grow: 1;
         }
 
-        .header-section { margin-bottom: 25px; }
+        .header-section { margin-bottom: 20px; }
         .logo-sm { width: 60px; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3)); }
         h2 { font-size: 20px; font-weight: 800; }
-        .subtitle { color: var(--text-dim); font-size: 13px; text-transform: uppercase; margin-top: 5px; }
+        .subtitle { color: var(--primary); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
 
         /* Formulário */
         .form-group { position: relative; margin-bottom: 12px; text-align: left; }
@@ -109,7 +112,7 @@
             border: none;
             border-radius: 12px;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
             margin-top: 10px;
             transition: 0.3s;
@@ -117,20 +120,22 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            text-transform: uppercase;
         }
 
         .btn-purple { background: var(--primary); color: white; }
-        .btn-green { background: var(--success); color: white; margin-top: 15px; }
-        .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-green { background: var(--success); color: #052e16; margin-top: 15px; }
+        .btn-action:hover { transform: translateY(-2px); opacity: 0.9; }
 
         /* Código de Barras */
         .barcode-container {
             background: white;
             padding: 15px;
             border-radius: 12px;
-            margin: 20px 0;
-            display: none; /* Só aparece quando gerado */
+            margin: 15px 0;
+            display: none; 
             justify-content: center;
+            border: 2px solid var(--primary);
         }
         #barcode { max-width: 100%; height: auto; }
 
@@ -138,10 +143,10 @@
 
         /* Rodapé */
         footer {
-            margin-top: 40px;
+            margin-top: 30px;
             text-align: center;
             color: var(--text-dim);
-            font-size: 11px;
+            font-size: 10px;
             padding-bottom: 10px;
         }
         footer b { color: var(--text); }
@@ -159,8 +164,8 @@
     <div class="main-card">
         <div class="header-section">
             <img src="imagem1.png" class="logo-sm">
-            <h2>Cadastro de Aluno</h2>
-            <p class="subtitle">EEMTI Dragão do Mar</p>
+            <h2>Novo Aluno</h2>
+            <div class="subtitle">EEMTI Dragão do Mar</div>
         </div>
 
         <div class="form-group">
@@ -189,7 +194,7 @@
         </div>
 
         <button class="btn-action btn-purple" onclick="gerarCodigo()">
-            <i class="fas fa-barcode"></i> Gerar Código de Barras
+            <i class="fas fa-barcode"></i> Gerar Código
         </button>
 
         <div class="barcode-container" id="barcodeBox">
@@ -197,7 +202,7 @@
         </div>
 
         <button class="btn-action btn-green" onclick="salvar()">
-            <i class="fas fa-save"></i> Salvar Aluno
+            <i class="fas fa-save"></i> Salvar Cadastro
         </button>
 
         <p id="msg"></p>
@@ -216,8 +221,10 @@
     function voltar() { window.location.href = "painel.html"; }
     
     async function sair() {
-        await client.auth.signOut();
-        window.location.href = "index.html";
+        if(confirm("Deseja sair do sistema?")) {
+            await client.auth.signOut();
+            window.location.href = "index.html";
+        }
     }
 
     function gerarCodigo(){
@@ -231,7 +238,8 @@
             displayValue: true,
             width: 2,
             height: 50,
-            fontSize: 14
+            fontSize: 14,
+            lineColor: "#000"
         });
     }
 
@@ -248,7 +256,7 @@
             return;
         }
 
-        msg.innerText = "Salvando...";
+        msg.innerText = "Salvando no banco...";
         msg.style.color = "white";
 
         const { error } = await client.from("provas_alunos").insert([
@@ -259,7 +267,7 @@
             msg.innerText = "❌ " + error.message;
             msg.style.color = "var(--danger)";
         } else {
-            msg.innerText = "✅ Aluno cadastrado com sucesso!";
+            msg.innerText = "✅ ALUNO CADASTRADO!";
             msg.style.color = "var(--success)";
             setTimeout(() => { location.reload(); }, 2000);
         }
