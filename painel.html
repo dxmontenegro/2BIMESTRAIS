@@ -2,102 +2,61 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel - Sistema de Provas</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: white; }
+    .topo { background: #28016b; padding: 20px; text-align: center; border-bottom: 2px solid #8b5cf6; }
+    .logo { width: 50px; }
+    
+    .container { 
+        padding: 20px; 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+        gap: 15px; 
+    }
 
-body{
-font-family:Arial;
-margin:0;
-background:#0f172a;
-color:white;
-}
+    .card { 
+        background: #1e293b; 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+        cursor: pointer; 
+        transition: 0.2s;
+        border: 1px solid #334155;
+    }
 
-.topo{
-background:#28016b;
-padding:15px;
-text-align:center;
-border-bottom:2px solid #8b5cf6;
-}
+    .card:hover { background: #334155; transform: translateY(-3px); }
+    h3 { margin: 10px 0 0; font-size: 1.1rem; }
 
-.logo{
-width:50px;
-}
-
-.container{
-padding:30px;
-display:grid;
-grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-gap:20px;
-}
-
-.card{
-background:#1e293b;
-padding:25px;
-border-radius:12px;
-text-align:center;
-cursor:pointer;
-transition:0.2s;
-}
-
-.card:hover{
-background:#334155;
-transform:scale(1.03);
-}
-
-h3{
-margin-top:10px;
-}
-
+    /* Otimização para Celular */
+    @media (max-width: 480px) {
+        .container { grid-template-columns: 1fr 1fr; } /* 2 colunas no celular */
+        h3 { font-size: 0.9rem; }
+    }
 </style>
-
 </head>
-
 <body>
 
 <div class="topo">
-<img src="imagem1.png" class="logo">
-<h2>EEMTI DRAGÃO DO MAR</h2>
-<p>Painel do Sistema de Avaliação</p>
+    <img src="imagem1.png" class="logo">
+    <h2>EEMTI DRAGÃO DO MAR</h2>
+    <p>Painel de Avaliação</p>
 </div>
 
 <div class="container">
-
-<div class="card" onclick="ir('cadastro.html')">
-<h3>👨‍🎓 Cadastro de Aluno</h3>
-</div>
-
-<div class="card" onclick="ir('agenda.html')">
-<h3>📅 Agenda de Provas</h3>
-</div>
-
-
-<div class="card" onclick="ir('relatorio.html')">
-<h3>📊 Relatório</h3>
-</div>
-
-<div class="card" onclick="ir('mapa.html')">
-<h3>🖥️ Mapa do Laboratório</h3>
-</div>
-
-<div class="card" onclick="ir('liberar.html')">
-<h3>📡 Liberar Terminal</h3>
-</div>
-
-<div class="card" onclick="ir('prova.html')">
-<h3>▶️ Nova Aplicação</h3>
-</div>
-
+    <div class="card" onclick="ir('cadastro.html')"><h3>👨‍🎓 Cadastro</h3></div>
+    <div class="card" onclick="ir('agenda.html')"><h3>📅 Agenda</h3></div>
+    <div class="card" onclick="ir('relatorio.html')"><h3>📊 Relatório</h3></div>
+    <div class="card" onclick="ir('mapa.html')"><h3>🖥️ Mapa Lab</h3></div>
+    <div class="card" onclick="ir('liberar.html')"><h3>📡 Liberar</h3></div>
+    <div class="card" onclick="ir('limpar.html')" style="border-color: #22c55e;">
+        <h3>✅ Limpar Terminal</h3>
+    </div>
 </div>
 
 <script>
-
-function ir(pagina){
-window.location.href = pagina;
-}
-
+    function ir(pagina){ window.location.href = pagina; }
 </script>
 
 </body>
