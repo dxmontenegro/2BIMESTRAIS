@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Lab</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+
+:root{
+--bg:#0f172a;
+--text:#fff;
+--success:#10b981;
+--danger:#ef4444;
+
+--t1:#3b82f6;
+--t2:#22c55e;
+--t3:#f59e0b;
+
+--t1bg:rgba(59,130,246,0.15);
+--t2bg:rgba(34,197,94,0.15);
+--t3bg:rgba(245,158,11,0.15);
+}
+
+body{
+background:radial-gradient(circle at top right,#1e293b,#0f172a);
+color:white;
+font-family:Arial;
+padding:15px;
+margin:0;
+}
+
+/* NAV */
+.nav-top{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+}
+
+.btn-nav{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.1);
+color:white;
+padding:8px 12px;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+gap:15px;
+max-width:1000px;
+margin:auto;
+}
+
+/* CARD */
+.pc{
+padding:15px;
+border-radius:16px;
+text-align:center;
+transition:.3s;
+border:2px solid transparent;
+position:relative;
+}
+
+/* TURMAS */
+.turma1{background:var(--t1bg); border-color:var(--t1);}
+.turma2{background:var(--t2bg); border-color:var(--t2);}
+.turma3{background:var(--t3bg); border-color:var(--t3);}
+
+/* ÍCONE */
+.pc-icon{
+font-size:26px;
+margin-bottom:8px;
+}
+
+/* STATUS */
+.status{
+font-size:11px;
+font-weight:bold;
+}
+
+.livre .status{color:var(--success);}
+.ocupado .status{color:var(--danger);}
+
+/* TEXTO */
+.pc-nome{font-weight:800;}
+.pc-aluno{
+font-size:12px;
+margin-top:4px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+.pc-turma{
+font-size:11px;
+margin-top:5px;
+font-weight:bold;
+}
+
+/* 🔥 X OCUPADO */
+.pc-x{
+position:absolute;
+top:8px;
+right:10px;
+font-size:18px;
+color:var(--danger);
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="nav-top">
+<button class="btn-nav" onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<h2 style="text-align:center;margin-bottom:20px;">💻 Monitoramento</h2>
+
+<div class="grid" id="grid"></div>
+
+<footer style="text-align:center;margin-top:40px;font-size:12px;color:#94a3b8;">
+<p><b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+<p> </>By D.S.Montenegro ⚡</p>
+</footer>
+
+<script>
+
+const client = supabase.createClient(
+"https://fwemutmkbvnriqxxufhx.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+)
+
+function voltar(){
+window.location.href="painel.html"
+}
+
+// TURMA FIXA
+function getTurma(pcNome){
+const num = parseInt(pcNome.replace("PC",""))
+
+if(num % 3 === 1) return {nome:"1º ANO", classe:"turma1"}
+if(num % 3 === 2) return {nome:"2º ANO", classe:"turma2"}
+if(num % 3 === 0) return {nome:"3º ANO", classe:"turma3"}
+}
+
+// GRID
+async function inicializar(){
+
+const { data: pcs } = await client
+.from("provas_terminais")
+.select("nome")
+
+pcs.sort((a,b)=>parseInt(a.nome.replace("PC","")) - parseInt(b.nome.replace("PC","")))
+
+pcs.forEach(pc=>{
+
+const turma = getTurma(pc.nome)
+
+grid.innerHTML += `
+<div class="pc ${turma.classe}" id="card-${pc.nome}">
+
+<!-- ❌ -->
+<div class="pc-x" id="x-${pc.nome}">
+<i class="fas fa-circle-xmark"></i>
+</div>
+
+<i class="fas fa-desktop pc-icon"></i>
+
+<div class="pc-nome">${pc.nome}</div>
+
+<div class="status" id="status-${pc.nome}">---</div>
+
+<div class="pc-aluno" id="aluno-${pc.nome}">---</div>
+
+<div class="pc-turma">${turma.nome}</div>
+
+</div>
+`
+})
+
+atualizar()
+
+}
+
+// UPDATE
+async function atualizar(){
+
+const { data: pcs } = await client
+.from("provas_terminais")
+.select("*")
+
+for(let pc of pcs){
+
+const card = document.getElementById(`card-${pc.nome}`)
+const status = document.getElementById(`status-${pc.nome}`)
+const aluno = document.getElementById(`aluno-${pc.nome}`)
+const x = document.getElementById(`x-${pc.nome}`)
+
+card.classList.remove("livre","ocupado")
+card.classList.add(pc.status)
+
+// ❌ controle
+if(pc.status === "ocupado"){
+x.style.display = "block"
+}else{
+x.style.display = "none"
+}
+
+status.innerText = pc.status.toUpperCase()
+
+if(pc.aluno_id){
+
+const { data: a } = await client
+.from("provas_alunos")
+.select("nome")
+.eq("id",pc.aluno_id)
+.single()
+
+aluno.innerText = a ? a.nome : "---"
+
+}else{
+aluno.innerText="---"
+}
+
+}
+
+}
+
+inicializar()
+setInterval(atualizar,3000)
+
+</script>
+
+</body>
+</html>
