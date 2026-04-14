@@ -1,283 +1,260 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Agenda de Provas - EEMTI Dragão do Mar</title>
-    <link rel="icon" type="image/png" href="imagem1.png">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda de Provas</title>
 
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --success: #10b981;
-            --danger: #f87171;
-            --input-bg: #0f172a;
-        }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
 
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            /* CORREÇÃO PARA O FUNDO NO TELEMÓVEL */
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            background-attachment: fixed;
-            background-size: cover;
-            color: var(--text);
-            min-height: 100vh;
-            min-height: 100dvh; /* Altura dinâmica para mobile */
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-        }
+:root {
+--bg:#0f172a;
+--card:#1e293b;
+--primary:#8b5cf6;
+--primary-hover:#7c3aed;
+--text:#fff;
+--dim:#94a3b8;
+--success:#10b981;
+--danger:#f87171;
+}
 
-        /* Barra de Navegação Superior */
-        .nav-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            max-width: 450px;
-            width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
+body{
+font-family:Arial;
+background:radial-gradient(circle at top right,#1e293b,#0f172a);
+color:var(--text);
+margin:0;
+padding:15px;
+}
 
-        .btn-nav {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+/* NAV */
+.nav-top{
+display:flex;
+justify-content:space-between;
+max-width:450px;
+margin:auto;
+margin-bottom:20px;
+}
 
-        .btn-nav:hover { background: var(--card); border-color: var(--primary); }
-        .btn-sair { color: var(--danger); }
+.btn-nav{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.1);
+color:white;
+padding:8px 15px;
+border-radius:8px;
+cursor:pointer;
+}
 
-        /* Container Principal */
-        .main-card {
-            background: var(--card);
-            width: 100%;
-            max-width: 450px;
-            margin: 0 auto;
-            padding: 25px 20px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            flex-grow: 1;
-        }
+.btn-sair{color:var(--danger);}
 
-        .header-section { margin-bottom: 20px; }
-        .logo-sm { width: 60px; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3)); }
-        h2 { font-size: 20px; font-weight: 800; }
-        .subtitle { color: var(--primary); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
+/* CARD */
+.main-card{
+background:var(--card);
+max-width:450px;
+margin:auto;
+padding:25px;
+border-radius:24px;
+}
 
-        /* Formulário */
-        .form-group { position: relative; margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 8px; font-size: 11px; color: var(--text-dim); font-weight: 700; padding-left: 5px; letter-spacing: 0.5px; }
-        
-        input, select {
-            width: 100%;
-            padding: 14px 15px;
-            background: var(--input-bg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 15px;
-            outline: none;
-            transition: 0.3s;
-            appearance: none; /* Remove estilo padrão do mobile */
-        }
+/* INPUT */
+input,select{
+width:100%;
+padding:12px;
+margin-bottom:12px;
+border-radius:10px;
+border:none;
+background:#0f172a;
+color:white;
+}
 
-        /* Estilizar especificamente o input date para mobile */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-        }
+/* BOTÕES */
+.btn{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin-top:10px;
+font-weight:bold;
+}
 
-        input:focus, select:focus { border-color: var(--primary); background: #161e31; }
+.btn-salvar{background:var(--primary);}
+.btn-salvar:hover{background:var(--primary-hover);}
 
-        /* Botão Salvar */
-        .btn-salvar {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-transform: uppercase;
-        }
+.btn-ver{background:#334155;}
 
-        .btn-salvar:hover { background: var(--primary-hover); transform: translateY(-2px); }
+/* LISTA */
+.lista{
+margin-top:20px;
+}
 
-        #msg { 
-            margin-top: 20px; 
-            font-size: 13px; 
-            font-weight: 700; 
-            min-height: 24px;
-            padding: 12px;
-            border-radius: 10px;
-            display: none; /* Escondido por padrão */
-        }
+.item{
+background:#0f172a;
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
 
-        .msg-sucesso { display: block !important; color: var(--success); background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); }
-        .msg-erro { display: block !important; color: var(--danger); background: rgba(248, 113, 113, 0.15); border: 1px solid var(--danger); }
+.item small{
+color:var(--dim);
+}
 
-        /* Rodapé */
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            color: var(--text-dim);
-            font-size: 10px;
-            padding-bottom: 10px;
-        }
-        footer b { color: var(--text); }
-        footer i { color: var(--primary); margin: 0 3px; }
+/* DELETE */
+.btn-del{
+background:var(--danger);
+border:none;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
+}
 
-    </style>
+/* FOOTER */
+footer{
+margin-top:30px;
+text-align:center;
+font-size:11px;
+color:var(--dim);
+}
+footer b{color:white;}
+footer i{color:var(--primary);}
+
+</style>
 </head>
+
 <body>
 
-    <div class="nav-top">
-        <button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
-        <button class="btn-nav btn-sair" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
-    </div>
+<div class="nav-top">
+<button class="btn-nav" onclick="voltar()">⬅ Voltar</button>
+<button class="btn-nav btn-sair" onclick="sair()">Sair</button>
+</div>
 
-    <div class="main-card">
-        <div class="header-section">
-            <img src="imagem1.png" class="logo-sm">
-            <h2>Agenda de Provas</h2>
-            <div class="subtitle">Planeamento de Avaliações</div>
-        </div>
+<div class="main-card">
 
-        <div class="form-group">
-            <label><i class="fas fa-calendar-day"></i> DATA DA AVALIAÇÃO</label>
-            <input type="date" id="data">
-        </div>
+<h2>Agenda de Provas</h2>
 
-        <div class="form-group">
-            <label><i class="fas fa-clock"></i> TURNO / MODALIDADE</label>
-            <select id="modalidade">
-                <option value="INTEGRAL">Integral</option>
-                <option value="NOTURNO">Noturno</option>
-            </select>
-        </div>
+<input type="date" id="data">
 
-        <div class="form-group">
-            <label><i class="fas fa-book"></i> ÁREA DO CONHECIMENTO</label>
-            <select id="area">
-                <option value="MAT1">Matemática</option>
-                <option value="NAT1">Natureza</option>
-                <option value="HUM1">Humanas</option>
-                <option value="LIN1">Linguagens</option>
-            </select>
-        </div>
+<select id="modalidade">
+<option value="INTEGRAL">Integral</option>
+<option value="NOTURNO">Noturno</option>
+</select>
 
-        <button class="btn-salvar" onclick="salvar()">
-            <i class="fas fa-save"></i> SALVAR / ATUALIZAR
-        </button>
+<select id="area">
+<option value="MAT1">Matemática</option>
+<option value="NAT1">Natureza</option>
+<option value="HUM1">Humanas</option>
+<option value="LIN1">Linguagens</option>
+</select>
 
-        <p id="msg"></p>
-    </div>
+<button class="btn btn-salvar" onclick="salvar()">SALVAR</button>
+<button class="btn btn-ver" onclick="carregarAgenda()">VER AGENDA</button>
 
-    <footer>
-        <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
-        <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
-    </footer>
+<p id="msg"></p>
+
+<div id="lista" class="lista"></div>
+
+</div>
+
+<footer>
+<p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+<p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+</footer>
 
 <script>
-    const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-    function voltar() { window.location.href = "painel.html"; }
-    
-    async function sair() {
-        if(confirm("Deseja sair do sistema?")) {
-            await client.auth.signOut();
-            window.location.href = "index.html";
-        }
-    }
+const client = supabase.createClient(
+"https://fwemutmkbvnriqxxufhx.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+)
 
-    async function salvar(){
-        const dataVal = document.getElementById("data").value
-        const modalidade = document.getElementById("modalidade").value
-        const area = document.getElementById("area").value
-        const msg = document.getElementById("msg");
+function voltar(){window.location.href="painel.html"}
 
-        if(!dataVal){
-            msg.innerText = "⚠️ Selecione a data!";
-            msg.className = "msg-erro";
-            return
-        }
+async function sair(){
+await client.auth.signOut()
+window.location.href="index.html"
+}
 
-        msg.style.display = "block";
-        msg.innerText = "Processando...";
-        msg.className = "";
+// SALVAR
+async function salvar(){
 
-        const { data: existente, error: fetchError } = await client
-            .from("provas_agenda")
-            .select("*")
-            .eq("data", dataVal)
-            .eq("modalidade", modalidade)
+const dataVal = data.value
+const modalidade = document.getElementById("modalidade").value
+const area = document.getElementById("area").value
+const msg = document.getElementById("msg")
 
-        if(fetchError) {
-            msg.innerText = "Erro: " + fetchError.message;
-            msg.className = "msg-erro";
-            return;
-        }
+if(!dataVal){
+msg.innerText="Selecione a data"
+return
+}
 
-        let resError;
+const { data: existente } = await client
+.from("provas_agenda")
+.select("*")
+.eq("data",dataVal)
+.eq("modalidade",modalidade)
 
-        if(existente && existente.length > 0){
-            const { error } = await client
-                .from("provas_agenda")
-                .update({ area: area })
-                .eq("data", dataVal)
-                .eq("modalidade", modalidade)
-            resError = error;
-            msg.innerText = "✅ Agenda ATUALIZADA com sucesso!";
-        } else {
-            const { error } = await client
-                .from("provas_agenda")
-                .insert([{
-                    data: dataVal,
-                    modalidade: modalidade,
-                    area: area
-                }])
-            resError = error;
-            msg.innerText = "🚀 Agenda CRIADA com sucesso!";
-        }
+if(existente.length>0){
+await client.from("provas_agenda")
+.update({area})
+.eq("data",dataVal)
+.eq("modalidade",modalidade)
 
-        if(resError) {
-            msg.innerText = "❌ Erro: " + resError.message;
-            msg.className = "msg-erro";
-        } else {
-            msg.className = "msg-sucesso";
-        }
-    }
+msg.innerText="Atualizado!"
+}else{
+await client.from("provas_agenda")
+.insert([{data:dataVal,modalidade,area}])
+
+msg.innerText="Criado!"
+}
+
+carregarAgenda()
+}
+
+// LISTAR
+async function carregarAgenda(){
+
+const { data } = await client
+.from("provas_agenda")
+.select("*")
+.order("data",{ascending:true})
+
+lista.innerHTML=""
+
+data.forEach(item=>{
+lista.innerHTML += `
+<div class="item">
+<div>
+<b>${item.data}</b><br>
+<small>${item.modalidade} • ${item.area}</small>
+</div>
+
+<button class="btn-del" onclick="apagar('${item.data}','${item.modalidade}')">
+🗑️
+</button>
+</div>
+`
+})
+
+}
+
+// APAGAR
+async function apagar(dataVal, modalidade){
+
+await client
+.from("provas_agenda")
+.delete()
+.eq("data",dataVal)
+.eq("modalidade",modalidade)
+
+carregarAgenda()
+
+}
+
 </script>
 
 </body>
