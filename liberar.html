@@ -1,332 +1,331 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner Fiscal - EEMTI Dragão do Mar</title>
-    <link rel="icon" type="image/png" href="imagem1.png">
+<meta charset="UTF-8">
+<title>Liberação de Aluno</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --success: #10b981;
-            --danger: #ef4444;
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-        }
+<!-- 🔥 ÍCONES -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
 
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            background-attachment: fixed;
-            background-size: cover;
-            color: var(--text);
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            overflow-x: hidden;
-        }
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+padding:15px;
+text-align:center;
+}
 
-        /* Navegação */
-        .nav-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+/* TOPO */
+.topo{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+}
 
-        .btn-nav {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.3s;
-        }
+.voltar{
+background:#334155;
+padding:8px 14px;
+border-radius:6px;
+cursor:pointer;
+font-size:14px;
+}
 
-        .btn-nav:hover { background: var(--card); border-color: var(--primary); }
-        .btn-sair { color: var(--danger); }
-        .modo-fiscal { font-weight: 800; font-size: 11px; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
+/* CONTAINER */
+.container{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+max-width:520px;
+margin:auto;
+box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
 
-        /* Scanner Container */
-        #reader {
-            width: 100%;
-            max-width: 500px;
-            height: 35vh; 
-            margin: 0 auto;
-            border-radius: 24px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid rgba(139, 92, 246, 0.3);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
+/* SCANNER */
+#reader{
+width:100%;
+max-width:420px;
+height:260px;
+margin:auto;
+border-radius:12px;
+overflow:hidden;
+position:relative;
+background:black;
+display:flex;
+align-items:center;
+justify-content:center;
+}
 
-        #reader video {
-            position: absolute;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover;
-        }
+#reader video,
+#reader canvas{
+position:absolute;
+width:100%;
+height:100%;
+object-fit:cover;
+}
 
-        canvas.drawingBuffer {
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-        }
+/* BOX */
+.scan-box{
+position:absolute;
+width:70%;
+height:60%;
+z-index:5;
+}
 
-        /* Mira do Scanner */
-        .mira {
-            position: absolute;
-            width: 70%;
-            height: 50%;
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            box-shadow: 0 0 0 4000px rgba(15, 23, 42, 0.6);
-            z-index: 10;
-            pointer-events: none;
-        }
+.scan-box::before,
+.scan-box::after{
+content:"";
+position:absolute;
+width:40px;
+height:40px;
+border:3px solid #22c55e;
+}
 
-        .mira::after {
-            content: "";
-            position: absolute;
-            top: 50%; left: 5%;
-            width: 90%; height: 2px;
-            background: #ff0000;
-            box-shadow: 0 0 15px #ff0000;
-            animation: scanLine 2s infinite ease-in-out;
-        }
+.scan-box::before{
+top:0; left:0;
+border-right:none;
+border-bottom:none;
+}
 
-        @keyframes scanLine {
-            0%, 100% { transform: translateY(-30px); opacity: 0.2; }
-            50% { transform: translateY(30px); opacity: 1; }
-        }
+.scan-box::after{
+bottom:0; right:0;
+border-left:none;
+border-top:none;
+}
 
-        /* Container de Informações */
-        .container {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 24px;
-            margin: 15px auto 0 auto;
-            width: 100%;
-            max-width: 500px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+/* LASER */
+#reader::after{
+content:"";
+position:absolute;
+left:15%;
+width:70%;
+height:2px;
+background:red;
+top:50%;
+animation:laser 2s infinite;
+}
 
-        .btn-acao {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            border: none;
-            color: white;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-transform: uppercase;
-        }
+@keyframes laser{
+0%{top:20%;}
+50%{top:80%;}
+100%{top:20%;}
+}
 
-        .btn-acao:active { transform: scale(0.98); }
+/* INPUT */
+input, select{
+padding:10px;
+margin-top:10px;
+width:100%;
+border-radius:6px;
+border:none;
+}
 
-        .info-box {
-            background: rgba(15, 23, 42, 0.5);
-            padding: 20px;
-            border-radius: 16px;
-            flex-grow: 1;
-            text-align: center;
-            border: 1px dashed rgba(139, 92, 246, 0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+/* BOTÕES */
+button{
+padding:10px;
+margin-top:10px;
+width:100%;
+background:#2563eb;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+}
 
-        .pc-destaque {
-            font-size: 48px;
-            font-weight: 900;
-            color: var(--success);
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-            display: block;
-            margin: 5px 0;
-        }
+button:hover{
+background:#1d4ed8;
+}
 
-        footer {
-            margin-top: 15px;
-            text-align: center;
-            color: var(--text-dim);
-            font-size: 10px;
-            padding-bottom: 5px;
-        }
-    </style>
+/* INFO */
+.info{
+margin-top:15px;
+background:#0f172a;
+padding:15px;
+border-radius:8px;
+text-align:left;
+font-size:14px;
+}
+
+/* 🔻 FOOTER PADRÃO */
+footer{
+position:fixed;
+bottom:0;
+width:100%;
+background:#1e293b;
+padding:8px;
+border-top:1px solid #334155;
+font-size:13px;
+}
+
+footer p{
+margin:2px;
+}
+
+</style>
 </head>
 
 <body>
 
-    <div class="nav-top">
-        <button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
-        <div class="modo-fiscal"><i class="fas fa-shield-alt"></i> Scanner Ativo</div>
-        <button class="btn-nav btn-sair" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
-    </div>
+<div class="topo">
+<div class="voltar" onclick="voltar()">⬅ Voltar</div>
+</div>
 
-    <div id="reader">
-        <div class="mira"></div>
-    </div>
+<h2>📡 Liberação de Aluno</h2>
 
-    <div class="container">
-        <button class="btn-acao" onclick="reiniciar()">
-            <i class="fas fa-sync-alt"></i> NOVA LEITURA
-        </button>
-        
-        <div class="info-box" id="info">
-            <p id="msgStatus" style="color: var(--text-dim); font-weight: 600;">Posicione o código de barras na mira acima</p>
-        </div>
-    </div>
+<div class="container">
 
-    <footer>
-        <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
-        <p>Desenvolvido por D.S.Montenegro</p>
-    </footer>
+<div id="reader">
+<div class="scan-box"></div>
+</div>
+
+<input id="matricula" placeholder="Digite a matrícula">
+<button onclick="buscarPorMatricula()">Buscar por matrícula</button>
+
+<div id="resultado" class="info">
+Status: aguardando...
+</div>
+
+<div id="pcsArea" style="display:none;">
+<select id="pcsSelect"></select>
+<button onclick="liberarAluno()">LIBERAR ALUNO PARA PROVA</button>
+</div>
+
+</div>
+
+<!-- 🔻 FOOTER PADRÃO -->
+<footer>
+    <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+    <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+</footer>
 
 <script>
+
 const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-function voltar(){ window.location.href = "painel.html" }
-async function sair() { if(confirm("Deseja sair?")) { await client.auth.signOut(); window.location.href = "index.html"; } }
+let alunoAtual = null
 
-async function liberar(codigo){
-    codigo = codigo.trim();
-    if (navigator.vibrate) navigator.vibrate(100);
-
-    const info = document.getElementById("info");
-    info.innerHTML = `<div class="spinner"><i class="fas fa-circle-notch fa-spin"></i> Validando Aluno...</div>`;
-
-    const { data: aluno, error } = await client.from("provas_alunos").select("*").eq("codigo_barras", codigo).single();
-
-    if(error || !aluno){
-        info.innerHTML = `
-            <i class="fas fa-user-times" style="font-size:40px; color:var(--danger); margin-bottom:10px;"></i>
-            <p style="color:var(--danger); font-weight:bold;">ALUNO NÃO ENCONTRADO</p>
-            <p style="font-size:12px; color:var(--text-dim)">Código: ${codigo}</p>
-        `;
-        return;
-    }
-
-    const ano = aluno.turma.charAt(0);
-    // Busca um PC livre para o ano específico
-    const { data: pcs } = await client.from("provas_terminais")
-        .select("*")
-        .eq("status", "livre")
-        .eq("ano", parseInt(ano))
-        .limit(1);
-
-    if(!pcs || pcs.length === 0){
-        info.innerHTML = `
-            <i class="fas fa-exclamation-triangle" style="font-size:40px; color:#fbbf24; margin-bottom:10px;"></i>
-            <p><b>${aluno.nome}</b></p>
-            <p style="color:#fbbf24; font-weight:bold; margin-top:5px;">SEM TERMINAIS LIVRES<br>PARA O ${ano}º ANO</p>
-        `;
-        return;
-    }
-
-    const pc = pcs[0];
-
-    // Atualiza status no banco
-    await client.from("provas_terminais").update({ status: "ocupado", aluno_id: aluno.id }).eq("id", pc.id);
-    await client.from("provas_alunos").update({ fez_prova: true }).eq("id", aluno.id);
-
-    info.innerHTML = `
-        <i class="fas fa-check-circle" style="font-size:40px; color:var(--success); margin-bottom:10px;"></i>
-        <p style="color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Acesso Liberado</p>
-        <strong style="font-size:18px; display:block; margin: 5px 0;">${aluno.nome}</strong>
-        <p style="color:var(--text-dim); font-size:11px; margin-top:10px;">VÁ PARA O TERMINAL:</p>
-        <span class="pc-destaque">${pc.nome}</span>
-    `;
+function voltar(){
+window.location.href = "painel.html"
 }
 
-function iniciar(){
-    Quagga.init({
-        inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: document.querySelector('#reader'),
-            constraints: { 
-                facingMode: "environment",
-                aspectRatio: { min: 1, max: 2 }
-            }
-        },
-        decoder: {
-            readers: ["code_128_reader", "ean_reader"],
-            multiple: false
-        },
-        locate: true
-    }, function(err) {
-        if (err) { 
-            console.error(err);
-            document.getElementById("msgStatus").innerText = "Erro ao acessar câmera.";
-            return; 
-        }
-        Quagga.start();
-    });
+// SCANNER
+function iniciarScanner(){
+Quagga.init({
+inputStream:{
+name:"Live",
+type:"LiveStream",
+target:document.querySelector('#reader'),
+constraints:{facingMode:"environment"}
+},
+decoder:{readers:["code_128_reader"]}
+}, function(err){
+if(err) return
+Quagga.start()
+})
 }
 
-Quagga.onDetected(function(data) {
-    const codigo = data.codeResult.code;
-    Quagga.stop(); // Para o scanner imediatamente após detectar
-    liberar(codigo);
-});
+Quagga.onDetected(async function(data){
 
-function reiniciar(){
-    const info = document.getElementById("info");
-    info.innerHTML = `<p style="color:var(--text-dim);">Reiniciando scanner...</p>`;
-    Quagga.stop();
-    
-    // Limpa vídeos antigos
-    const reader = document.querySelector('#reader');
-    const elements = reader.querySelectorAll('video, canvas');
-    elements.forEach(el => el.remove());
+const codigo = data.codeResult.code
 
-    setTimeout(() => {
-        iniciar();
-        info.innerHTML = `<p style="color:var(--text-dim); font-weight:600;">Aguardando nova leitura...</p>`;
-    }, 400);
+const { data: aluno } = await client
+.from("provas_alunos")
+.select("*")
+.eq("codigo_barras", codigo)
+.single()
+
+if(!aluno){
+resultado.innerHTML = "Aluno não encontrado"
+return
 }
 
-window.addEventListener('load', iniciar);
+processarAluno(aluno)
+
+})
+
+// MATRÍCULA
+async function buscarPorMatricula(){
+
+const mat = matricula.value
+
+const { data: aluno } = await client
+.from("provas_alunos")
+.select("*")
+.eq("matricula", mat)
+.single()
+
+if(!aluno){
+resultado.innerHTML = "Aluno não encontrado"
+return
+}
+
+processarAluno(aluno)
+}
+
+// PROCESSAR
+async function processarAluno(aluno){
+
+alunoAtual = aluno
+
+resultado.innerHTML = `
+<b>Aluno:</b> ${aluno.nome}<br>
+<b>Turma:</b> ${aluno.turma}
+`
+
+const ano = parseInt(aluno.turma.charAt(0))
+
+const { data: pcs } = await client
+.from("provas_terminais")
+.select("*")
+.eq("status","livre")
+.eq("ano",ano)
+
+if(!pcs || pcs.length === 0){
+resultado.innerHTML += "<br>Sem PCs disponíveis"
+return
+}
+
+pcsSelect.innerHTML=""
+
+pcs.forEach(pc=>{
+const op=document.createElement("option")
+op.value=pc.id
+op.text=pc.nome
+pcsSelect.appendChild(op)
+})
+
+pcsArea.style.display="block"
+}
+
+// LIBERAR
+async function liberarAluno(){
+
+const pcId = pcsSelect.value
+
+await client.from("provas_terminais")
+.update({status:"ocupado", aluno_id:alunoAtual.id})
+.eq("id", pcId)
+
+// reset
+alunoAtual=null
+resultado.innerHTML="Status: aguardando..."
+pcsArea.style.display="none"
+matricula.value=""
+
+}
+
+iniciarScanner()
+
 </script>
 
 </body>
