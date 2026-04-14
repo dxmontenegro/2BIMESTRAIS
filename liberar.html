@@ -45,10 +45,11 @@ max-width:500px;
 margin:auto;
 }
 
-/* SCANNER */
+/* 🔥 SCANNER CORRIGIDO */
 #reader{
 width:100%;
-height:240px; /* 🔥 altura fixa resolve bug */
+max-width:420px;
+height:260px;
 margin:auto;
 border-radius:10px;
 overflow:hidden;
@@ -56,13 +57,14 @@ position:relative;
 background:black;
 }
 
-/* 🔥 CORREÇÃO DEFINITIVA */
+/* 🔥 AJUSTE CRÍTICO */
 #reader video,
 #reader canvas{
 position:absolute;
+top:0;
+left:0;
 width:100%;
 height:100%;
-object-fit:cover; /* agora funciona corretamente */
 }
 
 /* LASER */
@@ -174,7 +176,7 @@ function voltar(){
 window.location.href = "painel.html"
 }
 
-// SCANNER
+// 🔥 SCANNER COM RESOLUÇÃO FIXA
 function iniciarScanner(){
 
 Quagga.init({
@@ -182,6 +184,8 @@ inputStream:{
 type:"LiveStream",
 target:document.querySelector('#reader'),
 constraints:{
+width: 640,
+height: 480,
 facingMode:"environment"
 }
 },
