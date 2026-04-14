@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Liberação de Aluno</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 
-<!-- 🔥 ÍCONES -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -17,7 +17,7 @@ font-family:Arial;
 background:#0f172a;
 color:white;
 margin:0;
-padding:15px;
+padding:10px;
 text-align:center;
 }
 
@@ -31,7 +31,7 @@ margin-bottom:10px;
 
 .voltar{
 background:#334155;
-padding:8px 14px;
+padding:8px 12px;
 border-radius:6px;
 cursor:pointer;
 font-size:14px;
@@ -40,26 +40,20 @@ font-size:14px;
 /* CONTAINER */
 .container{
 background:#1e293b;
-padding:20px;
+padding:15px;
 border-radius:12px;
-max-width:520px;
+max-width:500px;
 margin:auto;
-box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
 /* SCANNER */
 #reader{
 width:100%;
-max-width:420px;
-height:260px;
-margin:auto;
-border-radius:12px;
+height:220px;
+border-radius:10px;
 overflow:hidden;
 position:relative;
 background:black;
-display:flex;
-align-items:center;
-justify-content:center;
 }
 
 #reader video,
@@ -68,35 +62,6 @@ position:absolute;
 width:100%;
 height:100%;
 object-fit:cover;
-}
-
-/* BOX */
-.scan-box{
-position:absolute;
-width:70%;
-height:60%;
-z-index:5;
-}
-
-.scan-box::before,
-.scan-box::after{
-content:"";
-position:absolute;
-width:40px;
-height:40px;
-border:3px solid #22c55e;
-}
-
-.scan-box::before{
-top:0; left:0;
-border-right:none;
-border-bottom:none;
-}
-
-.scan-box::after{
-bottom:0; right:0;
-border-left:none;
-border-top:none;
 }
 
 /* LASER */
@@ -120,16 +85,17 @@ animation:laser 2s infinite;
 /* INPUT */
 input, select{
 padding:10px;
-margin-top:10px;
+margin-top:8px;
 width:100%;
 border-radius:6px;
 border:none;
+font-size:16px;
 }
 
 /* BOTÕES */
 button{
 padding:10px;
-margin-top:10px;
+margin-top:8px;
 width:100%;
 background:#2563eb;
 color:white;
@@ -139,34 +105,27 @@ cursor:pointer;
 font-weight:bold;
 }
 
-button:hover{
-background:#1d4ed8;
-}
-
 /* INFO */
 .info{
-margin-top:15px;
+margin-top:10px;
 background:#0f172a;
-padding:15px;
+padding:12px;
 border-radius:8px;
 text-align:left;
 font-size:14px;
 }
 
-/* 🔻 FOOTER PADRÃO */
+/* FOOTER */
 footer{
 position:fixed;
 bottom:0;
 width:100%;
 background:#1e293b;
-padding:8px;
-border-top:1px solid #334155;
-font-size:13px;
+padding:6px;
+font-size:12px;
 }
 
-footer p{
-margin:2px;
-}
+footer p{margin:2px;}
 
 </style>
 </head>
@@ -177,16 +136,14 @@ margin:2px;
 <div class="voltar" onclick="voltar()">⬅ Voltar</div>
 </div>
 
-<h2>📡 Liberação de Aluno</h2>
+<h3>📡 Liberação de Aluno</h3>
 
 <div class="container">
 
-<div id="reader">
-<div class="scan-box"></div>
-</div>
+<div id="reader"></div>
 
 <input id="matricula" placeholder="Digite a matrícula">
-<button onclick="buscarPorMatricula()">Buscar por matrícula</button>
+<button onclick="buscarPorMatricula()">Buscar</button>
 
 <div id="resultado" class="info">
 Status: aguardando...
@@ -194,25 +151,25 @@ Status: aguardando...
 
 <div id="pcsArea" style="display:none;">
 <select id="pcsSelect"></select>
-<button onclick="liberarAluno()">LIBERAR ALUNO PARA PROVA</button>
+<button onclick="liberarAluno()">LIBERAR ALUNO</button>
 </div>
 
 </div>
 
-<!-- 🔻 FOOTER PADRÃO -->
 <footer>
-    <p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
-    <p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
+<p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+<p><i class="fas fa-code"></i> By <b>D.S.Montenegro</b> <i class="fas fa-bolt"></i></p>
 </footer>
 
 <script>
 
-const SUPABASE_URL = "https://fwemutmkbvnriqxxufhx.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
-
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const client = supabase.createClient(
+"https://fwemutmkbvnriqxxufhx.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3ZW11dG1rYnZucmlxeHh1Zmh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjM2MzMsImV4cCI6MjA4ODczOTYzM30.HCXIoI_r7_yGJntTPIizhrP4apxXV3Ahd6Jk2AkvKas"
+)
 
 let alunoAtual = null
+let lendo = false // 🔥 trava anti-loop
 
 function voltar(){
 window.location.href = "painel.html"
@@ -220,21 +177,31 @@ window.location.href = "painel.html"
 
 // SCANNER
 function iniciarScanner(){
+
 Quagga.init({
 inputStream:{
-name:"Live",
 type:"LiveStream",
 target:document.querySelector('#reader'),
 constraints:{facingMode:"environment"}
 },
 decoder:{readers:["code_128_reader"]}
 }, function(err){
+
 if(err) return
+
 Quagga.start()
+
 })
 }
 
+// 🔥 DETECÇÃO COM TRAVA
 Quagga.onDetected(async function(data){
+
+if(lendo) return // 🔥 evita loop
+
+lendo = true
+
+Quagga.stop() // 🔥 para scanner
 
 const codigo = data.codeResult.code
 
@@ -246,6 +213,8 @@ const { data: aluno } = await client
 
 if(!aluno){
 resultado.innerHTML = "Aluno não encontrado"
+lendo = false
+iniciarScanner()
 return
 }
 
@@ -268,6 +237,9 @@ if(!aluno){
 resultado.innerHTML = "Aluno não encontrado"
 return
 }
+
+lendo = true
+Quagga.stop()
 
 processarAluno(aluno)
 }
@@ -292,6 +264,8 @@ const { data: pcs } = await client
 
 if(!pcs || pcs.length === 0){
 resultado.innerHTML += "<br>Sem PCs disponíveis"
+lendo = false
+iniciarScanner()
 return
 }
 
@@ -316,11 +290,14 @@ await client.from("provas_terminais")
 .update({status:"ocupado", aluno_id:alunoAtual.id})
 .eq("id", pcId)
 
-// reset
+// reset completo
 alunoAtual=null
 resultado.innerHTML="Status: aguardando..."
 pcsArea.style.display="none"
 matricula.value=""
+
+lendo = false
+iniciarScanner() // 🔥 volta scanner sem piscar
 
 }
 
