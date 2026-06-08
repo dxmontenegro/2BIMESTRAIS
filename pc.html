@@ -168,18 +168,18 @@ document.getElementById("pcNome").textContent = nomePC
 
 const provas = {
 // 1º ANO
-         MAT2:"https://docs.google.com/forms/d/e/1FAIpQLSetvIVYIZzy3S0XtFI2kdU57wdhZcqRFcDvFhMpK_qaY6Oh5Q/viewform?embedded=true",
-        DMAR1NAT2:"   ",
+        DMAR1MAT2:"https://docs.google.com/forms/d/e/1FAIpQLSetvIVYIZzy3S0XtFI2kdU57wdhZcqRFcDvFhMpK_qaY6Oh5Q/viewform?embedded=true",
+        DMAR1NAT2:"",
         DMAR1HUM2:"   ",
         DMAR1LIN2:"   ",
 
-        DMAR1MAT2N:"  ",
+        DMAR1MAT2N:"https://docs.google.com/forms/d/e/1FAIpQLSfrQbnYGyiHvzweRxGZ4UYSdjcfwPADu23gL-8DMswOuO4Dyw/viewform?embedded=true",
         DMAR1NAT2N:"  ",
         DMAR1HUM2N:"  ",
         DMAR1LIN2N:"  ",
 
         // 2º ANO
-        DMAR2MAT2:"   ",
+        DMAR2MAT2:"https://docs.google.com/forms/d/e/1FAIpQLSdHHrOo5MzNwxV5fjz13UMbFM79fz6HmpmSIXER2QRq0nP6yQ/viewform?embedded=true   ",
         DMAR2NAT2:"   ",
         DMAR2HUM2:"   ",
         DMAR2LIN1:"   ",
@@ -190,7 +190,7 @@ const provas = {
         DMAR2LIN2N:"  ",
 
         // 3º ANO
-        DMAR3MAT2:"  ",
+        DMAR3MAT2:"https://docs.google.com/forms/d/e/1FAIpQLScLy71a7GtpBubL6XaXCcBTZ5jT5sOA4BRpXJGc29c54VSWTA/viewform?embedded=true",
         DMAR3NAT2:"  ",
         DMAR3HUM2:"  ",
         DMAR3LIN1:"  ",
@@ -222,15 +222,33 @@ async function verificarStatus() {
     const { data, error } = await client.from("provas_terminais").select("status, aluno_id").eq("nome", nomePC).single();
     
     if (data?.status === "ocupado" && data.aluno_id) {
+        
+        
         const { data: aluno } = await client.from("provas_alunos").select("*").eq("id", data.aluno_id).single();
         if (aluno) {
             // Se encontrou aluno, busca a agenda para saber qual prova mostrar
-            const { data: agendas } = await client.from("provas_agenda").select("*");
-            const hoje = new Date().toLocaleDateString('en-CA');
-            const agenda = agendas.find(a => a.data.includes(hoje));
-            
-            alunoAtual = aluno;
-            areaAtual = agenda ? agenda.area : "Não agendada";
+            const { data: agendas } = await client
+        .from("provas_agenda")
+        .select("*");
+
+        const hoje = new Date().toLocaleDateString('en-CA');
+
+const turma = aluno.turma.trim().toUpperCase();
+
+const modalidade =
+    turma === "1D" ||
+    turma === "2D" ||
+    turma === "3C"
+        ? "NOTURNO"
+        : "INTEGRAL";
+
+const agenda = agendas.find(
+    a => a.data.includes(hoje) &&
+         a.modalidade === modalidade
+);
+
+alunoAtual = aluno;
+areaAtual = agenda ? agenda.area : "Não agendada";
             
             carregarAluno(aluno, areaAtual);
             document.getElementById("btnIniciarProva").style.display = "block";
@@ -245,16 +263,33 @@ async function verificarStatus() {
 setInterval(verificarStatus, 2000);
 
 function confirmarInicio() {
+
     if (!alunoAtual) return;
-    
-    // Para o monitoramento para evitar refresh
+
     monitoramentoAtivo = false;
-    
-    const codigo = "DMAR" + alunoAtual.turma.charAt(0) + areaAtual;
+
+    const turma = alunoAtual.turma.trim().toUpperCase();
+
+    const ehNoturno =
+        turma === "1D" ||
+        turma === "2D" ||
+        turma === "3C";
+
+    const codigo =
+        "DMAR" +
+        turma.charAt(0) +
+        areaAtual +
+        (ehNoturno ? "N" : "");
+
+    console.log("TURMA:", turma);
+    console.log("AREA:", areaAtual);
+    console.log("CODIGO:", codigo);
+
     const link = provas[codigo];
 
     document.getElementById("btnIniciarProva").style.display = "none";
     document.getElementById("frame").src = link;
+
     iniciarTimer();
     setTimeout(entrarFullscreen, 500);
 }
