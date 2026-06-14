@@ -12,23 +12,18 @@
 
 :root{
 --bg:#0f172a;
+--card:#1e293b;
 --text:#fff;
---success:#10b981;
---danger:#ef4444;
-
---t1:#3b82f6;
---t2:#22c55e;
---t3:#f59e0b;
-
---t1bg:rgba(59,130,246,0.15);
---t2bg:rgba(34,197,94,0.15);
---t3bg:rgba(245,158,11,0.15);
+--free-1:#22c55e;
+--free-2:#eab308;
+--occupied:#ef4444;
+--border:#334155;
 }
 
 body{
 background:radial-gradient(circle at top right,#1e293b,#0f172a);
 color:white;
-font-family:Arial;
+font-family:-apple-system, system-ui, sans-serif;
 padding:15px;
 margin:0;
 }
@@ -38,80 +33,177 @@ margin:0;
 display:flex;
 justify-content:space-between;
 margin-bottom:20px;
+max-width:1200px;
+margin-left:auto;
+margin-right:auto;
 }
 
 .btn-nav{
 background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.1);
+border:1px solid var(--border);
 color:white;
-padding:8px 12px;
-border-radius:8px;
+padding:10px 16px;
+border-radius:10px;
 cursor:pointer;
+display:flex;
+align-items:center;
+gap:8px;
+font-size:14px;
+}
+
+/* TÍTULO */
+h2{
+text-align:center;
+margin-bottom:25px;
+font-size:22px;
+font-weight:800;
+color:var(--text);
 }
 
 /* GRID */
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-gap:15px;
-max-width:1000px;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:18px;
+max-width:1200px;
 margin:auto;
+padding:20px;
 }
 
 /* CARD */
 .pc{
-padding:15px;
-border-radius:16px;
+padding:20px 16px;
+border-radius:20px;
 text-align:center;
-transition:.3s;
-border:2px solid transparent;
+transition:all 0.4s;
+border:2px solid var(--border);
 position:relative;
+background:var(--card);
+box-shadow:0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* TURMAS */
-.turma1{background:var(--t1bg); border-color:var(--t1);}
-.turma2{background:var(--t2bg); border-color:var(--t2);}
-.turma3{background:var(--t3bg); border-color:var(--t3);}
+/* LIVRE - ALTERNA VERDE/AMARELO */
+.pc.livre{
+animation:alternaCor 2s infinite;
+}
+
+.pc.livre:hover{
+transform:scale(1.05);
+box-shadow:0 8px 30px rgba(34,197,94,0.4);
+border-color:var(--free-1);
+}
+
+@keyframes alternativaCor{
+0%, 100%{
+background:rgba(34,197,94,0.15);
+border-color:var(--free-1);
+box-shadow:0 0 10px rgba(34,197,94,0.3);
+}
+50%{
+background:rgba(234,179,8,0.15);
+border-color:var(--free-2);
+box-shadow:0 0 10px rgba(234,179,8,0.3);
+}
+}
+
+/* OCUPADO - VERMELHO ESTÁTICO */
+.pc.ocupado{
+background:rgba(239,68,68,0.15);
+border-color:var(--occupied);
+box-shadow:0 0 15px rgba(239,68,68,0.3);
+opacity:0.7;
+}
+
+.pc.ocupado:hover{
+border-color:#dc2626;
+}
 
 /* ÍCONE */
 .pc-icon{
-font-size:26px;
-margin-bottom:8px;
+font-size:30px;
+margin-bottom:12px;
 }
+
+.pc.livre .pc-icon{color:var(--free-1);}
+.pc.ocupado .pc-icon{color:var(--occupied);}
 
 /* STATUS */
 .status{
-font-size:11px;
+font-size:12px;
 font-weight:bold;
+margin-top:10px;
+padding:4px 10px;
+border-radius:6px;
+display:inline-block;
 }
 
-.livre .status{color:var(--success);}
-.ocupado .status{color:var(--danger);}
+.pc.livre .status{
+color:var(--free-1);
+background:rgba(34,197,94,0.1);
+}
+
+.pc.ocupado .status{
+color:var(--occupied);
+background:rgba(239,68,68,0.1);
+}
 
 /* TEXTO */
-.pc-nome{font-weight:800;}
+.pc-nome{
+font-weight:800;
+font-size:16px;
+margin-bottom:6px;
+color:var(--text);
+}
+
 .pc-aluno{
-font-size:12px;
-margin-top:4px;
+font-size:13px;
+margin-top:6px;
 white-space:nowrap;
 overflow:hidden;
 text-overflow:ellipsis;
+color:#94a3b8;
 }
 
 .pc-turma{
-font-size:11px;
-margin-top:5px;
-font-weight:bold;
+font-size:12px;
+margin-top:8px;
+font-weight:600;
+opacity:0.8;
+color:#cbd5e1;
 }
 
 /* 🔥 X OCUPADO */
 .pc-x{
 position:absolute;
-top:8px;
-right:10px;
-font-size:18px;
-color:var(--danger);
+top:10px;
+right:12px;
+font-size:20px;
+color:var(--occupied);
 display:none;
+}
+
+.pc.ocupado .pc-x{
+display:block;
+}
+
+/* FOOTER */
+footer{
+text-align:center;
+margin-top:40px;
+font-size:12px;
+color:#94a3b8;
+max-width:1200px;
+margin-left:auto;
+margin-right:auto;
+}
+
+footer b{
+color:var(--text);
+}
+
+footer i{
+color:#6366f1;
+margin:0 3px;
 }
 
 </style>
@@ -120,16 +212,16 @@ display:none;
 <body>
 
 <div class="nav-top">
-<button class="btn-nav" onclick="voltar()">⬅ Voltar</button>
+<button class="btn-nav" onclick="voltar()"><i class="fas fa-arrow-left"></i> Voltar</button>
 </div>
 
-<h2 style="text-align:center;margin-bottom:20px;">💻 Monitoramento</h2>
+<h2>💻 EEMTI DRAGÃO DO MAR </h2>
 
 <div class="grid" id="grid"></div>
 
-<footer style="text-align:center;margin-top:40px;font-size:12px;color:#94a3b8;">
-<p><b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
-<p> By D.S.Montenegro ⚡</p>
+<footer>
+<p><i class="fas fa-school"></i> <b>EEMTI DRAGÃO DO MAR - L.E.I.</b></p>
+<p><i class="fas fa-code"></i> By D.S.Montenegro <i class="fas fa-bolt"></i></p>
 </footer>
 
 <script>
@@ -203,17 +295,9 @@ for(let pc of pcs){
 const card = document.getElementById(`card-${pc.nome}`)
 const status = document.getElementById(`status-${pc.nome}`)
 const aluno = document.getElementById(`aluno-${pc.nome}`)
-const x = document.getElementById(`x-${pc.nome}`)
 
 card.classList.remove("livre","ocupado")
 card.classList.add(pc.status)
-
-// ❌ controle
-if(pc.status === "ocupado"){
-x.style.display = "block"
-}else{
-x.style.display = "none"
-}
 
 status.innerText = pc.status.toUpperCase()
 
